@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>5학년 2반 교무수첩</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #2C4A7C; --primary-light: #3D6199; --accent: #E8834A;
+  --bg: #F4F1EC; --bg-card: #FDFAF5; --text: #1A1A2E; --text-sub: #5A6072;
+  --border: #D8D0C4; --success: #4A8C6A; --warning: #D4A017; --danger: #C0392B;
+  --purple: #7B5EA7; --teal: #2A8C8C;
+  --shadow: 0 2px 12px rgba(44,74,124,0.10); --radius: 14px; --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+.app-header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; padding: 14px 16px 10px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(44,74,124,0.3); }
+.header-top { display: flex; align-items: center; justify-content: space-between; }
+.header-title { font-size: 17px; font-weight: 700; }
+.header-sub { font-size: 11px; opacity: 0.75; margin-top: 1px; }
+.header-date { font-size: 12px; opacity: 0.85; text-align: right; }
+.sync-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.15); border-radius: 20px; padding: 3px 10px; font-size: 11px; margin-top: 6px; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #4CAF50; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: white; border-top: 1px solid var(--border); display: flex; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); padding-bottom: env(safe-area-inset-bottom); overflow-x: auto; }
+.bottom-nav::-webkit-scrollbar { display: none; }
+.nav-btn { flex: 1; min-width: 52px; padding: 7px 2px 5px; border: none; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 9px; color: var(--text-sub); font-family: inherit; transition: all 0.2s; white-space: nowrap; }
+.nav-btn.active { color: var(--primary); }
+.nav-btn .nav-icon { font-size: 20px; line-height: 1; }
+
+.main-content { padding: 14px 14px 86px; max-width: 700px; margin: 0 auto; }
+.page { display: none; }
+.page.active { display: block; }
+
+.card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.card-title { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+.section-title { font-size: 15px; font-weight: 700; color: var(--text); margin: 18px 0 10px; display: flex; align-items: center; gap: 8px; }
+
+.btn { padding: 9px 16px; border-radius: var(--radius-sm); border: none; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-accent { background: var(--accent); color: white; }
+.btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-success { background: var(--success); color: white; }
+.btn-full { width: 100%; justify-content: center; }
+
+.form-group { margin-bottom: 11px; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--text-sub); margin-bottom: 4px; display: block; }
+.form-input, .form-select, .form-textarea { width: 100%; padding: 9px 11px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: inherit; font-size: 14px; background: white; color: var(--text); transition: border 0.2s; outline: none; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.date-nav { display: flex; align-items: center; justify-content: space-between; background: var(--primary); color: white; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; }
+.date-nav button { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0 6px; }
+.date-nav .date-label { font-size: 15px; font-weight: 700; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--bg-card); border-radius: 20px 20px 0 0; width: 100%; max-width: 700px; max-height: 92vh; overflow-y: auto; padding: 18px 16px 40px; transform: translateY(100%); transition: transform 0.3s ease; }
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 14px; }
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+
+.toast { position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1A1A2E; color: white; padding: 9px 20px; border-radius: 30px; font-size: 13px; font-weight: 500; z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.empty { text-align: center; padding: 32px 16px; color: var(--text-sub); }
+.empty-icon { font-size: 44px; margin-bottom: 10px; }
+.empty-text { font-size: 14px; }
+.loading { text-align: center; padding: 36px; color: var(--text-sub); }
+.spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.summary-card { background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 14px 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+.summary-card:active { transform: scale(0.97); }
+.summary-card .sc-icon { font-size: 26px; margin-bottom: 5px; }
+.summary-card .sc-label { font-size: 12px; font-weight: 700; color: var(--primary); }
+.summary-card .sc-count { font-size: 20px; font-weight: 900; color: var(--text); margin-top: 2px; }
+
+/* ATTENDANCE */
+.attend-month-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.attend-month-table th { background: var(--primary); color: white; padding: 6px 3px; text-align: center; position: sticky; top: 0; z-index: 2; font-size: 10px; }
+.attend-month-table td { padding: 4px 2px; text-align: center; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.attend-month-table tr:nth-child(even) td { background: #F8F6F0; }
+.attend-month-table td.name-cell { font-weight: 700; font-size: 12px; text-align: left; padding-left: 6px; white-space: nowrap; }
+.attend-cell { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 9px; font-weight: 700; transition: all 0.15s; }
+.attend-cell.정상등교::after { content: '○'; font-size: 13px; color: #bbb; }
+.attend-cell.병결석 { background: #FFF3E0; color: #E65100; }
+.attend-cell.무단결석 { background: #FFEBEE; color: var(--danger); }
+.attend-cell.출석인정 { background: #E8EAF6; color: #3949AB; }
+.attend-cell.병조퇴 { background: #FFF8E1; color: var(--warning); }
+.attend-cell.기타조퇴 { background: #F3E5F5; color: var(--purple); }
+.attend-cell.병지각 { background: #E0F2F1; color: var(--teal); }
+.attend-cell.기타지각 { background: #E8F5E9; color: var(--success); }
+.weekend-col td { background: #F0EEE8 !important; }
+.attend-month-table th.wknd { background: #8a9ab5; }
+.status-picker { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+.status-chip { padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+.status-chip.정상등교 { background: #F5F5F5; color: #666; border-color: #ccc; }
+.status-chip.병결석 { background: #FFF3E0; color: #E65100; border-color: #E65100; }
+.status-chip.무단결석 { background: #FFEBEE; color: var(--danger); border-color: var(--danger); }
+.status-chip.출석인정 { background: #E8EAF6; color: #3949AB; border-color: #3949AB; }
+.status-chip.병조퇴 { background: #FFF8E1; color: var(--warning); border-color: var(--warning); }
+.status-chip.기타조퇴 { background: #F3E5F5; color: var(--purple); border-color: var(--purple); }
+.status-chip.병지각 { background: #E0F2F1; color: var(--teal); border-color: var(--teal); }
+.status-chip.기타지각 { background: #E8F5E9; color: var(--success); border-color: var(--success); }
+.status-chip.selected { filter: saturate(1.5) brightness(0.95); transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+
+/* CHECKLIST */
+.checklist-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.checklist-table th { background: var(--primary); color: white; padding: 7px 4px; text-align: center; font-size: 10px; white-space: nowrap; }
+.checklist-table th.s-col { min-width: 52px; text-align: left; padding-left: 6px; }
+.checklist-table td { padding: 5px 3px; text-align: center; border-bottom: 1px solid var(--border); }
+.checklist-table tr:nth-child(even) td { background: #F8F6F0; }
+.checklist-table td.s-name { font-weight: 700; font-size: 12px; text-align: left; padding-left: 6px; white-space: nowrap; }
+.check-btn { width: 30px; height: 30px; border-radius: 6px; border: 2px solid var(--border); background: white; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.check-btn.done { background: var(--success); border-color: var(--success); color: white; }
+.check-btn.done::after { content: '✓'; font-weight: 900; }
+.check-btn.absent-mark { background: #FFEBEE; border-color: var(--danger); }
+.check-btn.absent-mark::after { content: '결'; font-size: 10px; color: var(--danger); font-weight: 900; }
+
+/* EVAL - grade buttons */
+.grade-pick { display: flex; gap: 5px; flex-wrap: wrap; }
+.grade-cell-btn { padding: 5px 8px; border-radius: 8px; border: 1.5px solid var(--border); background: white; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.grade-cell-btn.매우잘함 { border-color: #2e7d32; color: #2e7d32; }
+.grade-cell-btn.잘함 { border-color: #1565c0; color: #1565c0; }
+.grade-cell-btn.보통 { border-color: #e65100; color: #e65100; }
+.grade-cell-btn.노력요함 { border-color: var(--danger); color: var(--danger); }
+.grade-cell-btn.selected.매우잘함 { background: #2e7d32; color: white; }
+.grade-cell-btn.selected.잘함 { background: #1565c0; color: white; }
+.grade-cell-btn.selected.보통 { background: #e65100; color: white; }
+.grade-cell-btn.selected.노력요함 { background: var(--danger); color: white; }
+
+.eval-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.eval-table th { background: var(--primary); color: white; padding: 7px 5px; text-align: center; font-size: 10px; white-space: nowrap; position: sticky; top: 0; z-index: 2; }
+.eval-table th.name-th { min-width: 52px; text-align: left; padding-left: 6px; }
+.eval-table td { padding: 5px 4px; text-align: center; border-bottom: 1px solid var(--border); }
+.eval-table tr:nth-child(even) td { background: #F8F6F0; }
+.eval-table td.name-td { font-weight: 700; font-size: 12px; text-align: left; padding-left: 6px; white-space: nowrap; }
+.grade-badge { display: inline-block; padding: 3px 7px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer; }
+.grade-badge.매우잘함 { background: #E8F5E9; color: #2e7d32; }
+.grade-badge.잘함 { background: #E3F2FD; color: #1565c0; }
+.grade-badge.보통 { background: #FFF3E0; color: #e65100; }
+.grade-badge.노력요함 { background: #FFEBEE; color: var(--danger); }
+.grade-badge.empty { background: #F5F5F5; color: #bbb; }
+
+/* WEEKLY PLAN */
+.week-lesson-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; margin-top: 12px; }
+.day-lesson-col { background: white; border-radius: var(--radius-sm); border: 1px solid var(--border); overflow: hidden; }
+.day-lesson-header { background: var(--primary); color: white; text-align: center; padding: 6px 4px; font-size: 12px; font-weight: 700; }
+.day-lesson-header.today-col { background: var(--accent); }
+.period-lesson-cell { padding: 4px; border-bottom: 1px solid var(--border); min-height: 44px; cursor: pointer; transition: background 0.15s; }
+.period-lesson-cell:last-child { border-bottom: none; }
+.period-lesson-cell:active { background: rgba(44,74,124,0.05); }
+.period-num-label { font-size: 9px; color: var(--text-sub); font-weight: 600; }
+.period-content-text { font-size: 10px; color: var(--text); line-height: 1.3; margin-top: 2px; word-break: break-all; }
+
+/* CALENDAR */
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+.cal-header-cell { text-align: center; padding: 6px 2px; font-size: 11px; font-weight: 700; color: var(--text-sub); }
+.cal-header-cell:first-child { color: var(--danger); }
+.cal-header-cell:last-child { color: #3949AB; }
+.cal-day { min-height: 52px; background: white; border-radius: 6px; border: 1px solid var(--border); padding: 4px; cursor: pointer; transition: all 0.15s; position: relative; }
+.cal-day:active { background: #EEF2FF; }
+.cal-day.today { border-color: var(--primary); border-width: 2px; }
+.cal-day.other-month { opacity: 0.35; }
+.cal-day.sunday .cal-day-num { color: var(--danger); }
+.cal-day.saturday .cal-day-num { color: #3949AB; }
+.cal-day-num { font-size: 12px; font-weight: 700; }
+.cal-event-dot { font-size: 9px; background: var(--accent); color: white; border-radius: 4px; padding: 1px 4px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.cal-event-dot.type-학년 { background: var(--purple); }
+.cal-event-dot.type-학교 { background: var(--primary); }
+.cal-event-dot.type-기타 { background: var(--teal); }
+
+/* RECORDS */
+.record-item { background: white; border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 8px; cursor: pointer; }
+.record-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.record-student { font-size: 13px; font-weight: 700; color: var(--primary); }
+.record-date { font-size: 11px; color: var(--text-sub); }
+.record-type { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; margin: 4px 0; }
+.record-content { font-size: 13px; color: var(--text-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.type-상담 { background: #E8EAF6; color: #3949AB; }
+.type-수행평가 { background: #E8F5E9; color: var(--success); }
+.type-생활기록 { background: #FFF3E0; color: var(--accent); }
+.type-특이사항 { background: #FFEBEE; color: var(--danger); }
+.type-평가 { background: #F3E5F5; color: var(--purple); }
+
+.meeting-item { background: white; border-left: 4px solid var(--accent); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 14px; margin-bottom: 8px; }
+.meeting-item.grade-meeting { border-left-color: var(--purple); }
+.meeting-date { font-size: 11px; color: var(--text-sub); margin-bottom: 3px; }
+.meeting-title { font-size: 14px; font-weight: 700; }
+.meeting-content { font-size: 13px; color: var(--text-sub); margin-top: 5px; white-space: pre-wrap; }
+.work-item { background: white; border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 12px; margin-bottom: 8px; }
+.work-category { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+.work-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.work-detail { font-size: 13px; color: var(--text-sub); }
+.work-due { font-size: 11px; color: var(--danger); margin-top: 5px; font-weight: 600; }
+
+.student-item { display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); gap: 12px; }
+.student-item:last-child { border-bottom: none; }
+.s-num { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: white; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.s-info { flex: 1; }
+.s-name { font-size: 14px; font-weight: 600; }
+
+.tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab-btn { padding: 6px 13px; border-radius: 20px; border: 1.5px solid var(--border); background: white; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; color: var(--text-sub); transition: all 0.2s; }
+.tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.scroll-x::-webkit-scrollbar { height: 3px; }
+.scroll-x::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="header-top">
+    <div><div class="header-title">📚 5학년 2반 교무수첩</div><div class="header-sub">2026학년도</div></div>
+    <div class="header-date" id="headerDate"></div>
+  </div>
+  <div class="sync-badge"><div class="sync-dot" id="syncDot"></div><span id="syncStatus">연결 중...</span></div>
+</div>
+
+<div class="main-content">
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="section-title">📊 오늘의 현황</div>
+    <div class="summary-grid">
+      <div class="summary-card" onclick="goPage('attend')"><div class="sc-icon">📋</div><div class="sc-label">이번 달 출결</div><div class="sc-count" id="sumAttend">-</div></div>
+      <div class="summary-card" onclick="goPage('students')"><div class="sc-icon">👨‍🎓</div><div class="sc-label">전체 학생</div><div class="sc-count" id="sumStudents">0</div></div>
+      <div class="summary-card" onclick="goPage('checklist')"><div class="sc-icon">✅</div><div class="sc-label">점검 항목</div><div class="sc-count" id="sumChecklist">0</div></div>
+      <div class="summary-card" onclick="goPage('calendar')"><div class="sc-icon">📅</div><div class="sc-label">이번 달 행사</div><div class="sc-count" id="sumEvents">0</div></div>
+    </div>
+    <div class="section-title">📅 이번 달 행사</div>
+    <div id="homeEvents"><div class="loading"><div class="spinner"></div>불러오는 중...</div></div>
+    <div class="section-title">⚠️ 최근 특이사항</div>
+    <div id="homeRecent"><div class="loading"><div class="spinner"></div>불러오는 중...</div></div>
+  </div>
+
+  <!-- ATTEND -->
+  <div class="page" id="page-attend">
+    <div class="date-nav">
+      <button onclick="changeMonth(-1)">◀</button>
+      <span class="date-label" id="attendMonthLabel"></span>
+      <button onclick="changeMonth(1)">▶</button>
+    </div>
+    <div class="card" style="padding:10px 8px">
+      <div class="card-title" style="margin-bottom:8px">📋 월별 출결표
+        <button class="btn btn-sm btn-accent" style="margin-left:auto" onclick="saveAllAttendance()">💾 저장</button>
+      </div>
+      <div class="scroll-x" id="attendTableWrap"><div class="loading"><div class="spinner"></div>불러오는 중...</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="font-size:12px">출결 범례</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px">
+        <span style="padding:3px 8px;border-radius:10px;background:#FFF3E0;color:#E65100;font-weight:700">병결석</span>
+        <span style="padding:3px 8px;border-radius:10px;background:#FFEBEE;color:var(--danger);font-weight:700">무단결석</span>
+        <span style="padding:3px 8px;border-radius:10px;background:#E8EAF6;color:#3949AB;font-weight:700">출석인정</span>
+        <span style="padding:3px 8px;border-radius:10px;background:#FFF8E1;color:var(--warning);font-weight:700">병조퇴</span>
+        <span style="padding:3px 8px;border-radius:10px;background:#F3E5F5;color:var(--purple);font-weight:700">기타조퇴</span>
+        <span style="padding:3px 8px;border-radius:10px;background:#E0F2F1;color:var(--teal);font-weight:700">병지각</span>
+        <span style="padding:3px 8px;border-radius:10px;background:#E8F5E9;color:var(--success);font-weight:700">기타지각</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="page" id="page-checklist">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="btn btn-primary btn-full" onclick="openAddCheckItem()">+ 점검 항목 추가</button>
+    </div>
+    <div class="tabs" id="checklistTabs"></div>
+    <div id="checklistContent"><div class="loading"><div class="spinner"></div>불러오는 중...</div></div>
+  </div>
+
+  <!-- EVAL -->
+  <div class="page" id="page-eval">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="btn btn-primary btn-full" onclick="openAddEvalItem()">+ 수행평가 항목 추가</button>
+    </div>
+    <div class="tabs" id="evalTabs"></div>
+    <div id="evalContent"><div class="loading"><div class="spinner"></div>불러오는 중...</div></div>
+  </div>
+
+  <!-- WEEKLY PLAN -->
+  <div class="page" id="page-plan">
+    <div class="date-nav">
+      <button onclick="changeWeek(-1)">◀</button>
+      <span class="date-label" id="weekLabel"></span>
+      <button onclick="changeWeek(1)">▶</button>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="openAddWeekPlan()" style="margin-bottom:12px">📸 이번 주 주안 사진 추가/수정</button>
+    <div id="weekPlanContent"><div class="loading"><div class="spinner"></div>불러오는 중...</div></div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="page" id="page-calendar">
+    <div class="date-nav">
+      <button onclick="changeCalMonth(-1)">◀</button>
+      <span class="date-label" id="calMonthLabel"></span>
+      <button onclick="changeCalMonth(1)">▶</button>
+    </div>
+    <button class="btn btn-accent btn-full" onclick="openAddEvent()" style="margin-bottom:12px">+ 행사 추가</button>
+    <div class="card" style="padding:10px">
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+    <div class="section-title">📋 이번 달 행사 목록</div>
+    <div id="eventList"></div>
+  </div>
+
+  <!-- RECORDS -->
+  <div class="page" id="page-records">
+    <div class="tabs" id="recordTabs">
+      <button class="tab-btn active" onclick="selectRecordTab('all',this)">전체</button>
+      <button class="tab-btn" onclick="selectRecordTab('상담',this)">상담일지</button>
+      <button class="tab-btn" onclick="selectRecordTab('수행평가',this)">수행평가</button>
+      <button class="tab-btn" onclick="selectRecordTab('평가',this)">평가</button>
+      <button class="tab-btn" onclick="selectRecordTab('생활기록',this)">학교생활</button>
+      <button class="tab-btn" onclick="selectRecordTab('특이사항',this)">특이사항</button>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="openAddRecord()" style="margin-bottom:12px">✏️ 새 기록 추가</button>
+    <div id="recordList"><div class="loading"><div class="spinner"></div>불러오는 중...</div></div>
+  </div>
+
+  <!-- STUDENTS -->
+  <div class="page" id="page-students">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input class="form-input" id="studentSearch" placeholder="🔍 학생 검색" oninput="renderStudentList()" style="flex:1">
+      <button class="btn btn-primary" onclick="openAddStudent()">+ 추가</button>
+    </div>
+    <div id="studentList"><div class="loading"><div class="spinner"></div>불러오는 중...</div></div>
+  </div>
+
+  <!-- MORE -->
+  <div class="page" id="page-more">
+    <div class="tabs" id="moreTabs">
+      <button class="tab-btn active" onclick="selectMoreTab('부장회의',this)">📣 부장회의</button>
+      <button class="tab-btn" onclick="selectMoreTab('학년회의',this)">🏫 학년회의</button>
+      <button class="tab-btn" onclick="selectMoreTab('업무',this)">📌 학교업무</button>
+    </div>
+    <div id="moreContent"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="goPage('home')" id="nav-home"><span class="nav-icon">🏠</span>홈</button>
+  <button class="nav-btn" onclick="goPage('attend')" id="nav-attend"><span class="nav-icon">📋</span>출결</button>
+  <button class="nav-btn" onclick="goPage('checklist')" id="nav-checklist"><span class="nav-icon">✅</span>점검표</button>
+  <button class="nav-btn" onclick="goPage('eval')" id="nav-eval"><span class="nav-icon">📊</span>수행평가</button>
+  <button class="nav-btn" onclick="goPage('plan')" id="nav-plan"><span class="nav-icon">📅</span>주안</button>
+  <button class="nav-btn" onclick="goPage('calendar')" id="nav-calendar"><span class="nav-icon">🗓️</span>캘린더</button>
+  <button class="nav-btn" onclick="goPage('records')" id="nav-records"><span class="nav-icon">📝</span>기록</button>
+  <button class="nav-btn" onclick="goPage('students')" id="nav-students"><span class="nav-icon">👨‍🎓</span>학생</button>
+  <button class="nav-btn" onclick="goPage('more')" id="nav-more"><span class="nav-icon">⋯</span>더보기</button>
+</nav>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Attend Picker -->
+<div class="modal-overlay" id="modal-attendPicker">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="attendPickerTitle">출결 선택</div>
+    <div class="status-picker" id="statusPicker"></div>
+    <div id="attendMemoWrap" style="display:none">
+      <div class="form-group"><label class="form-label">출석인정 사유</label><textarea class="form-textarea" id="attendMemoInput" placeholder="출석인정 사유..." rows="3"></textarea></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-attendPicker')">취소</button>
+      <button class="btn btn-primary btn-full" onclick="confirmAttendStatus()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Student -->
+<div class="modal-overlay" id="modal-addStudent">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="addStudentTitle">학생 추가</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">번호</label><input class="form-input" id="si_num" type="number" placeholder="1" min="1" max="40"></div>
+      <div class="form-group"><label class="form-label">이름</label><input class="form-input" id="si_name" placeholder="홍길동"></div>
+    </div>
+    <div class="form-group"><label class="form-label">성별</label><select class="form-select" id="si_gender"><option value="남">남</option><option value="여">여</option></select></div>
+    <div class="form-group"><label class="form-label">메모</label><input class="form-input" id="si_memo" placeholder="특이사항 등"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-addStudent')">취소</button>
+      <button class="btn btn-primary btn-full" onclick="saveStudent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Check Item -->
+<div class="modal-overlay" id="modal-addCheckItem">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✅ 점검 항목 추가</div>
+    <div class="form-group"><label class="form-label">항목 이름</label><input class="form-input" id="ci_name" placeholder="예: 역사 연표1, 수학 단원평가"></div>
+    <div class="form-group"><label class="form-label">분류(과목)</label><input class="form-input" id="ci_category" placeholder="예: 국어, 수학, 사회"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-addCheckItem')">취소</button>
+      <button class="btn btn-primary btn-full" onclick="saveCheckItem()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Eval Item -->
+<div class="modal-overlay" id="modal-addEvalItem">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📊 수행평가 항목 추가</div>
+    <div class="form-group"><label class="form-label">평가 이름</label><input class="form-input" id="ei_name" placeholder="예: 사회 지형 논술형"></div>
+    <div class="form-group"><label class="form-label">과목</label><input class="form-input" id="ei_subject" placeholder="예: 국어, 수학, 사회"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-addEvalItem')">취소</button>
+      <button class="btn btn-primary btn-full" onclick="saveEvalItem()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- Grade Picker -->
+<div class="modal-overlay" id="modal-gradePicker">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="gradePickerTitle">등급 선택</div>
+    <div class="grade-pick" id="gradePicker" style="gap:10px;margin-bottom:16px">
+      <button class="grade-cell-btn 매우잘함" onclick="selectGrade('매우잘함',this)">매우잘함</button>
+      <button class="grade-cell-btn 잘함" onclick="selectGrade('잘함',this)">잘함</button>
+      <button class="grade-cell-btn 보통" onclick="selectGrade('보통',this)">보통</button>
+      <button class="grade-cell-btn 노력요함" onclick="selectGrade('노력요함',this)">노력요함</button>
+    </div>
+    <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="gradeMemo" placeholder="예: 재시험, 미제출 등"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-danger btn-sm" onclick="clearGrade()">삭제</button>
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-gradePicker')">취소</button>
+      <button class="btn btn-primary btn-full" onclick="confirmGrade()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Week Plan -->
+<div class="modal-overlay" id="modal-addWeekPlan">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📸 주간학습안내 추가</div>
+    <div class="form-group">
+      <label class="form-label">주안 사진 첨부</label>
+      <input type="file" id="wp_image" accept="image/*" class="form-input" style="padding:6px" onchange="previewWpImage(this)">
+      <div id="wpPreview" style="margin-top:8px"></div>
+    </div>
+    <div class="form-group"><label class="form-label">메모</label><textarea class="form-textarea" id="wp_memo" placeholder="이번 주 주요 내용, 준비물 등..." rows="3"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-addWeekPlan')">취소</button>
+      <button class="btn btn-primary btn-full" onclick="saveWeekPlan()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Period Edit -->
+<div class="modal-overlay" id="modal-periodEdit">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="periodEditTitle">수업 내용 입력</div>
+    <div class="form-group"><label class="form-label">과목</label><input class="form-input" id="pe_subject" placeholder="예: 국어, 수학, 체육"></div>
+    <div class="form-group"><label class="form-label">수업 내용</label><textarea class="form-textarea" id="pe_content" rows="5" placeholder="수업 준비 내용, 학습 목표, 준비물 등을 자유롭게 입력하세요..."></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-periodEdit')">취소</button>
+      <button class="btn btn-primary btn-full" onclick="savePeriodContent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Week Plan Detail -->
+<div class="modal-overlay" id="modal-weekPlanDetail">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="weekPlanDetailContent"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-danger btn-sm" id="deleteWeekPlanBtn">삭제</button>
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-weekPlanDetail')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Event -->
+<div class="modal-overlay" id="modal-addEvent">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="addEventTitle">📅 행사 추가</div>
+    <div class="form-group"><label class="form-label">날짜</label><input class="form-input" id="ev_date" type="date"></div>
+    <div class="form-group"><label class="form-label">행사명</label><input class="form-input" id="ev_title" placeholder="예: 운동회, 학예회, 현장학습"></div>
+    <div class="form-group"><label class="form-label">분류</label>
+      <select class="form-select" id="ev_type">
+        <option value="학교">학교행사</option><option value="학년">학년행사</option><option value="기타">기타</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">메모</label><textarea class="form-textarea" id="ev_memo" rows="3" placeholder="준비사항, 장소 등..."></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-addEvent')">취소</button>
+      <button class="btn btn-accent btn-full" onclick="saveEvent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Detail -->
+<div class="modal-overlay" id="modal-eventDetail">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="eventDetailContent"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-danger btn-sm" id="deleteEventBtn">삭제</button>
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-eventDetail')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Record -->
+<div class="modal-overlay" id="modal-addRecord">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📝 기록 추가</div>
+    <div class="form-group"><label class="form-label">학생</label><select class="form-select" id="rec_student"><option value="전체">전체</option></select></div>
+    <div class="form-group"><label class="form-label">유형</label><select class="form-select" id="rec_type"><option value="상담">상담일지</option><option value="수행평가">수행평가</option><option value="평가">평가</option><option value="생활기록">학교생활</option><option value="특이사항">특이사항</option></select></div>
+    <div class="form-group"><label class="form-label">날짜</label><input class="form-input" id="rec_date" type="date"></div>
+    <div class="form-group"><label class="form-label">제목</label><input class="form-input" id="rec_title" placeholder="제목"></div>
+    <div class="form-group"><label class="form-label">내용</label><textarea class="form-textarea" id="rec_content" rows="4" placeholder="내용..."></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-addRecord')">취소</button>
+      <button class="btn btn-primary btn-full" onclick="saveRecord()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Record Detail -->
+<div class="modal-overlay" id="modal-recordDetail">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="recordDetailContent"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-danger btn-sm" onclick="deleteCurrentRecord()">삭제</button>
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-recordDetail')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Meeting (부장/학년) -->
+<div class="modal-overlay" id="modal-addMeeting">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="addMeetingTitle">회의 기록</div>
+    <div class="form-group"><label class="form-label">날짜</label><input class="form-input" id="mt_date" type="date"></div>
+    <div class="form-group"><label class="form-label">제목</label><input class="form-input" id="mt_title" placeholder="예: 5월 부장회의"></div>
+    <div class="form-group"><label class="form-label">내용</label><textarea class="form-textarea" id="mt_content" rows="6" placeholder="회의 내용..."></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-addMeeting')">취소</button>
+      <button class="btn btn-accent btn-full" onclick="saveMeeting()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Work -->
+<div class="modal-overlay" id="modal-addWork">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🏫 학교 업무 추가</div>
+    <div class="form-group"><label class="form-label">분류</label><select class="form-select" id="wk_category"><option>행사</option><option>공문</option><option>수업</option><option>연수</option><option>행정</option><option>기타</option></select></div>
+    <div class="form-group"><label class="form-label">날짜/마감</label><input class="form-input" id="wk_date" type="date"></div>
+    <div class="form-group"><label class="form-label">업무 제목</label><input class="form-input" id="wk_title" placeholder="업무 제목"></div>
+    <div class="form-group"><label class="form-label">내용</label><textarea class="form-textarea" id="wk_detail" rows="4" placeholder="상세 내용"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-addWork')">취소</button>
+      <button class="btn btn-primary btn-full" onclick="saveWork()">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc, query, orderBy, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCw7Y9U9Q3iJ6f2jphgo-956gli40QRORs",
+  authDomain: "waste-26d6a.firebaseapp.com",
+  projectId: "waste-26d6a",
+  storageBucket: "waste-26d6a.firebasestorage.app",
+  messagingSenderId: "1071224992748",
+  appId: "1:1071224992748:web:719907ae58784d1a6bc6c9"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── State ──
+let students = [];
+let attendanceData = {};
+let checkItems = [], checkData = {};
+let evalItems = [], evalData = {};
+let weekPlans = [], lessonData = {}; // lessonData[weekKey][dayIdx][periodIdx] = {subject, content}
+let events = [];
+let records = [], meetings = [], works = [];
+let currentAttendMonth = new Date();
+let currentWeekOffset = 0;
+let currentCalMonth = new Date();
+let currentRecordTab = 'all';
+let currentRecordId = null;
+let editingStudentId = null;
+let pendingAttend = {};
+let pendingGrade = {};
+let pendingPeriod = {};
+let currentMoreTab = '부장회의';
+let currentCheckTab = null, currentEvalTab = null;
+let currentWeekPlanId = null, currentEventId = null;
+let addMeetingType = '부장회의';
+
+// ── Helpers ──
+function todayStr() { return localDateStr(new Date()); }
+function monthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function getMonday(offset=0) {
+  const d = new Date(); const day = d.getDay();
+  const diff = (day===0?-6:1)-day; d.setDate(d.getDate()+diff+offset*7); return d;
+}
+function localDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function weekKey(offset=0) { return localDateStr(getMonday(offset)); }
+function fmtFull(str) { if(!str)return''; const [y,m,day]=str.split('-'); return `${y}.${m}.${day}`; }
+function fmtMD(str) { if(!str)return''; const [,m,day]=str.split('-'); return `${Number(m)}/${Number(day)}`; }
+
+function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+window.closeModal = id => { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; };
+document.querySelectorAll('.modal-overlay').forEach(el => el.addEventListener('click', e=>{ if(e.target===el) closeModal(el.id); }));
+
+function setSyncStatus(ok) {
+  document.getElementById('syncDot').style.background = ok?'#4CAF50':'#F44336';
+  document.getElementById('syncStatus').textContent = ok?'Firebase 실시간 연결됨':'오프라인';
+}
+function updateHeaderDate() {
+  const now=new Date(); const days=['일','월','화','수','목','금','토'];
+  document.getElementById('headerDate').innerHTML=`${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+}
+updateHeaderDate(); setInterval(updateHeaderDate,60000);
+
+// ── Nav ──
+window.goPage = function(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  const map = { attend:renderAttendTable, checklist:renderChecklistPage, eval:renderEvalPage,
+    plan:renderWeekPlanPage, calendar:renderCalendar, records:renderRecordList,
+    students:renderStudentList, more:renderMorePage, home:renderHome };
+  if(map[name]) map[name]();
+}
+
+// ════════════════════════════════
+// STUDENTS
+// ════════════════════════════════
+async function loadStudents() {
+  const snap = await getDocs(query(collection(db,'students'), orderBy('num')));
+  students = []; snap.forEach(d=>students.push({id:d.id,...d.data()}));
+  document.getElementById('sumStudents').textContent = students.length;
+  populateStudentSelect();
+}
+window.openAddStudent = function(id=null) {
+  editingStudentId = id;
+  if(id) {
+    const s=students.find(x=>x.id===id);
+    document.getElementById('addStudentTitle').textContent='학생 수정';
+    document.getElementById('si_num').value=s.num; document.getElementById('si_name').value=s.name;
+    document.getElementById('si_gender').value=s.gender||'남'; document.getElementById('si_memo').value=s.memo||'';
+  } else {
+    document.getElementById('addStudentTitle').textContent='학생 추가';
+    const mx=students.length?Math.max(...students.map(s=>s.num))+1:1;
+    document.getElementById('si_num').value=mx; document.getElementById('si_name').value='';
+    document.getElementById('si_gender').value='남'; document.getElementById('si_memo').value='';
+  }
+  openModal('modal-addStudent');
+}
+window.saveStudent = async function() {
+  const num=parseInt(document.getElementById('si_num').value);
+  const name=document.getElementById('si_name').value.trim();
+  const gender=document.getElementById('si_gender').value;
+  const memo=document.getElementById('si_memo').value.trim();
+  if(!name||!num){toast('번호와 이름을 입력하세요');return;}
+  const data={num,name,gender,memo,updatedAt:serverTimestamp()};
+  if(editingStudentId) await setDoc(doc(db,'students',editingStudentId),data);
+  else await addDoc(collection(db,'students'),data);
+  closeModal('modal-addStudent'); toast('저장 완료!');
+  await loadStudents(); renderStudentList();
+}
+window.renderStudentList = function() {
+  const q=document.getElementById('studentSearch').value.trim();
+  const filtered=q?students.filter(s=>s.name.includes(q)||String(s.num).includes(q)):students;
+  const el=document.getElementById('studentList');
+  if(!filtered.length){el.innerHTML='<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">학생이 없습니다</div></div>';return;}
+  el.innerHTML='<div class="card" style="padding:0;overflow:hidden">'+
+    filtered.map(s=>`<div class="student-item">
+      <div class="s-num">${s.num}</div>
+      <div class="s-info"><div class="s-name">${s.name} <span style="font-size:11px;color:var(--text-sub)">${s.gender||''}</span></div>${s.memo?`<div style="font-size:11px;color:var(--text-sub)">${s.memo}</div>`:''}</div>
+      <button onclick="openAddStudent('${s.id}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px">✏️</button>
+      <button onclick="deleteStudent('${s.id}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px">🗑️</button>
+    </div>`).join('')+'</div>';
+}
+window.deleteStudent = async function(sid) {
+  if(!confirm('정말 삭제?'))return;
+  await deleteDoc(doc(db,'students',sid)); await loadStudents(); renderStudentList(); toast('삭제 완료');
+}
+function populateStudentSelect() {
+  const sel=document.getElementById('rec_student');
+  sel.innerHTML='<option value="전체">전체</option>'+students.map(s=>`<option value="${s.id}">${s.num}번 ${s.name}</option>`).join('');
+}
+
+// ════════════════════════════════
+// ATTENDANCE
+// ════════════════════════════════
+async function loadAttendMonth(d) {
+  const mk=monthKey(d); if(attendanceData[mk])return;
+  const snap=await getDoc(doc(db,'attendance_month',mk));
+  attendanceData[mk]=snap.exists()?snap.data():{};
+}
+window.renderAttendTable = async function() {
+  const d=currentAttendMonth; const mk=monthKey(d);
+  document.getElementById('attendMonthLabel').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월`;
+  await loadAttendMonth(d);
+  const dayData=attendanceData[mk]||{};
+  const daysInMonth=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  const days=Array.from({length:daysInMonth},(_,i)=>i+1);
+  const dow=day=>new Date(d.getFullYear(),d.getMonth(),day).getDay();
+  const isWknd=day=>{const w=dow(day);return w===0||w===6;};
+  const abbr={'정상등교':'○','병결석':'병결','무단결석':'무단','출석인정':'인정','병조퇴':'병퇴','기타조퇴':'조퇴','병지각':'병지','기타지각':'지각'};
+  const wrap=document.getElementById('attendTableWrap');
+  let html=`<table class="attend-month-table"><thead><tr>
+    <th style="position:sticky;left:0;z-index:3;background:var(--primary);min-width:52px;text-align:left;padding-left:6px">이름</th>
+    ${days.map(day=>`<th class="${isWknd(day)?'wknd':''}" style="min-width:30px">${day}<br><span style="font-size:9px">${'일월화수목금토'[dow(day)]}</span></th>`).join('')}
+  </tr></thead><tbody>`;
+  students.forEach(s=>{
+    html+=`<tr><td class="name-cell" style="position:sticky;left:0;background:white;z-index:1">${s.num}.${s.name}</td>`;
+    days.forEach(day=>{
+      if(isWknd(day)){html+=`<td style="background:#F0EEE8"></td>`;return;}
+      const cell=((dayData[s.id]||{})[day])||{};
+      const st=cell.status||'정상등교';
+      html+=`<td><div class="attend-cell ${st}" onclick="openAttendPicker('${s.id}',${day},'${s.name}')">${st==='정상등교'?'':abbr[st]||st}</div></td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  wrap.innerHTML=html;
+  // home summary
+  const today=new Date();
+  if(mk===monthKey(today)){
+    const td=today.getDate();
+    const abs=students.filter(s=>{const st=((dayData[s.id]||{})[td]||{}).status;return st&&st!=='정상등교';}).length;
+    document.getElementById('sumAttend').textContent=abs?`결석 ${abs}`:'전원 출석';
+  }
+}
+window.changeMonth=async function(dir){currentAttendMonth.setMonth(currentAttendMonth.getMonth()+dir);await renderAttendTable();}
+window.openAttendPicker=function(studentId,day,studentName){
+  pendingAttend={studentId,day};
+  const mk=monthKey(currentAttendMonth);
+  const ex=((attendanceData[mk]||{})[studentId]||{})[day]||{};
+  document.getElementById('attendPickerTitle').textContent=`${studentName} - ${currentAttendMonth.getMonth()+1}월 ${day}일`;
+  const statuses=['정상등교','병결석','무단결석','출석인정','병조퇴','기타조퇴','병지각','기타지각'];
+  const cur=ex.status||'정상등교';
+  document.getElementById('statusPicker').innerHTML=statuses.map(st=>
+    `<div class="status-chip ${st} ${cur===st?'selected':''}" onclick="selectAttendStatus('${st}',this)">${st}</div>`
+  ).join('');
+  document.getElementById('attendMemoInput').value=ex.memo||'';
+  document.getElementById('attendMemoWrap').style.display=cur==='출석인정'?'':'none';
+  openModal('modal-attendPicker');
+}
+window.selectAttendStatus=function(status,el){
+  document.querySelectorAll('#statusPicker .status-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('attendMemoWrap').style.display=status==='출석인정'?'':'none';
+}
+window.confirmAttendStatus=async function(){
+  const sel=document.querySelector('#statusPicker .status-chip.selected'); if(!sel)return;
+  const status=sel.textContent; const memo=document.getElementById('attendMemoInput').value.trim();
+  const mk=monthKey(currentAttendMonth);
+  if(!attendanceData[mk])attendanceData[mk]={};
+  if(!attendanceData[mk][pendingAttend.studentId])attendanceData[mk][pendingAttend.studentId]={};
+  attendanceData[mk][pendingAttend.studentId][pendingAttend.day]={status,memo};
+  closeModal('modal-attendPicker'); renderAttendTable();
+}
+window.saveAllAttendance=async function(){
+  const mk=monthKey(currentAttendMonth);
+  await setDoc(doc(db,'attendance_month',mk),attendanceData[mk]||{}); toast('출결 저장 완료! ✅');
+}
+
+// ════════════════════════════════
+// CHECKLIST
+// ════════════════════════════════
+async function loadChecklist(){
+  const snap=await getDocs(query(collection(db,'checkItems'),orderBy('createdAt')));
+  checkItems=[]; snap.forEach(d=>checkItems.push({id:d.id,...d.data()}));
+  document.getElementById('sumChecklist').textContent=checkItems.length;
+  const ds=await getDoc(doc(db,'checkData','all'));
+  checkData=ds.exists()?ds.data():{};
+}
+window.openAddCheckItem=function(){document.getElementById('ci_name').value='';document.getElementById('ci_category').value='';openModal('modal-addCheckItem');}
+window.saveCheckItem=async function(){
+  const name=document.getElementById('ci_name').value.trim();
+  const category=document.getElementById('ci_category').value.trim()||'기타';
+  if(!name){toast('항목 이름 입력');return;}
+  await addDoc(collection(db,'checkItems'),{name,category,createdAt:serverTimestamp()});
+  closeModal('modal-addCheckItem'); toast('항목 추가!'); await loadChecklist(); renderChecklistPage();
+}
+window.renderChecklistPage=function(){
+  const cats=[...new Set(checkItems.map(i=>i.category))];
+  if(!currentCheckTab||!cats.includes(currentCheckTab))currentCheckTab=cats[0]||null;
+  document.getElementById('checklistTabs').innerHTML=cats.map(cat=>
+    `<button class="tab-btn${currentCheckTab===cat?' active':''}" onclick="selectCheckTab('${cat}',this)">${cat}</button>`
+  ).join('')+`<button class="tab-btn" style="margin-left:auto" onclick="openAddCheckItem()">+ 추가</button>`;
+  const items=checkItems.filter(i=>i.category===currentCheckTab);
+  const el=document.getElementById('checklistContent');
+  if(!items.length){el.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">항목이 없습니다</div></div>';return;}
+  if(!students.length){el.innerHTML='<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">학생을 먼저 등록하세요</div></div>';return;}
+  let html=`<div class="scroll-x"><table class="checklist-table"><thead><tr>
+    <th class="s-col" style="position:sticky;left:0;z-index:3;background:var(--primary)">이름</th>
+    ${items.map(item=>`<th style="min-width:56px">${item.name}<br><button onclick="deleteCheckItem('${item.id}')" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:10px">✕</button></th>`).join('')}
+  </tr></thead><tbody>`;
+  students.forEach(s=>{
+    html+=`<tr><td class="s-name" style="position:sticky;left:0;background:white;z-index:1">${s.num}.${s.name}</td>`;
+    items.forEach(item=>{
+      const val=(checkData[item.id]||{})[s.id]||'';
+      html+=`<td><button class="check-btn${val==='done'?' done':val==='absent'?' absent-mark':''}" onclick="toggleCheck('${item.id}','${s.id}',this)"></button></td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+window.selectCheckTab=function(cat,btn){currentCheckTab=cat;document.querySelectorAll('#checklistTabs .tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderChecklistPage();}
+window.toggleCheck=async function(itemId,studentId,btn){
+  if(!checkData[itemId])checkData[itemId]={};
+  const cur=checkData[itemId][studentId]||'';
+  const next=cur===''?'done':cur==='done'?'absent':'';
+  checkData[itemId][studentId]=next;
+  btn.className='check-btn'+(next==='done'?' done':next==='absent'?' absent-mark':'');
+  await setDoc(doc(db,'checkData','all'),checkData);
+}
+window.deleteCheckItem=async function(id){if(!confirm('삭제?'))return;await deleteDoc(doc(db,'checkItems',id));await loadChecklist();renderChecklistPage();toast('삭제');}
+
+// ════════════════════════════════
+// EVAL (등급제)
+// ════════════════════════════════
+async function loadEval(){
+  const snap=await getDocs(query(collection(db,'evalItems'),orderBy('createdAt')));
+  evalItems=[]; snap.forEach(d=>evalItems.push({id:d.id,...d.data()}));
+  const ds=await getDoc(doc(db,'evalData','all'));
+  evalData=ds.exists()?ds.data():{};
+}
+window.openAddEvalItem=function(){document.getElementById('ei_name').value='';document.getElementById('ei_subject').value='';openModal('modal-addEvalItem');}
+window.saveEvalItem=async function(){
+  const name=document.getElementById('ei_name').value.trim();
+  const subject=document.getElementById('ei_subject').value.trim()||'기타';
+  if(!name){toast('이름 입력');return;}
+  await addDoc(collection(db,'evalItems'),{name,subject,createdAt:serverTimestamp()});
+  closeModal('modal-addEvalItem'); toast('항목 추가!'); await loadEval(); renderEvalPage();
+}
+window.renderEvalPage=function(){
+  const subs=[...new Set(evalItems.map(i=>i.subject))];
+  if(!currentEvalTab||!subs.includes(currentEvalTab))currentEvalTab=subs[0]||null;
+  document.getElementById('evalTabs').innerHTML=subs.map(sub=>
+    `<button class="tab-btn${currentEvalTab===sub?' active':''}" onclick="selectEvalTab('${sub}',this)">${sub}</button>`
+  ).join('')+`<button class="tab-btn" style="margin-left:auto" onclick="openAddEvalItem()">+ 추가</button>`;
+  const items=evalItems.filter(i=>i.subject===currentEvalTab);
+  const el=document.getElementById('evalContent');
+  if(!items.length){el.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">수행평가 항목이 없습니다</div></div>';return;}
+  if(!students.length){el.innerHTML='<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">학생을 먼저 등록하세요</div></div>';return;}
+  const grades=['매우잘함','잘함','보통','노력요함'];
+  let html=`<div class="scroll-x"><table class="eval-table"><thead><tr>
+    <th class="name-th" style="position:sticky;left:0;z-index:3;background:var(--primary)">이름</th>
+    ${items.map(item=>`<th style="min-width:72px">${item.name}</th>`).join('')}
+  </tr></thead><tbody>`;
+  students.forEach(s=>{
+    html+=`<tr><td class="name-td" style="position:sticky;left:0;background:white;z-index:1">${s.num}.${s.name}</td>`;
+    items.forEach(item=>{
+      const val=(evalData[item.id]||{})[s.id]||{};
+      const g=val.grade||'';
+      html+=`<td><div class="grade-badge ${g||'empty'}" onclick="openGradePicker('${item.id}','${s.id}','${s.name}','${item.name}')">${g||'—'}</div></td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+window.selectEvalTab=function(sub,btn){currentEvalTab=sub;document.querySelectorAll('#evalTabs .tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderEvalPage();}
+window.openGradePicker=function(itemId,studentId,studentName,itemName){
+  pendingGrade={itemId,studentId};
+  document.getElementById('gradePickerTitle').textContent=`${studentName} - ${itemName}`;
+  const existing=(evalData[itemId]||{})[studentId]||{};
+  document.querySelectorAll('#gradePicker .grade-cell-btn').forEach(b=>{b.classList.remove('selected');if(b.textContent===existing.grade)b.classList.add('selected');});
+  document.getElementById('gradeMemo').value=existing.memo||'';
+  openModal('modal-gradePicker');
+}
+window.selectGrade=function(grade,el){
+  document.querySelectorAll('#gradePicker .grade-cell-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+window.confirmGrade=async function(){
+  const sel=document.querySelector('#gradePicker .grade-cell-btn.selected');
+  if(!sel){toast('등급을 선택하세요');return;}
+  const grade=sel.textContent; const memo=document.getElementById('gradeMemo').value.trim();
+  if(!evalData[pendingGrade.itemId])evalData[pendingGrade.itemId]={};
+  evalData[pendingGrade.itemId][pendingGrade.studentId]={grade,memo};
+  await setDoc(doc(db,'evalData','all'),evalData);
+  closeModal('modal-gradePicker'); toast('저장!'); renderEvalPage();
+}
+window.clearGrade=async function(){
+  if(!evalData[pendingGrade.itemId])evalData[pendingGrade.itemId]={};
+  delete evalData[pendingGrade.itemId][pendingGrade.studentId];
+  await setDoc(doc(db,'evalData','all'),evalData);
+  closeModal('modal-gradePicker'); toast('삭제!'); renderEvalPage();
+}
+
+// ════════════════════════════════
+// WEEKLY PLAN + LESSON
+// ════════════════════════════════
+async function loadWeekPlans(){
+  const snap=await getDocs(query(collection(db,'weekPlans'),orderBy('weekKey','desc')));
+  weekPlans=[]; snap.forEach(d=>weekPlans.push({id:d.id,...d.data()}));
+  const ls=await getDoc(doc(db,'lessonData','all'));
+  lessonData=ls.exists()?ls.data():{};
+}
+window.renderWeekPlanPage=function(){
+  const mon=getMonday(currentWeekOffset);
+  const fri=new Date(mon); fri.setDate(fri.getDate()+4);
+  document.getElementById('weekLabel').textContent=`${fmtMD(localDateStr(mon))} ~ ${fmtMD(localDateStr(fri))}`;
+  const wk=weekKey(currentWeekOffset);
+  const plan=weekPlans.find(p=>p.weekKey===wk);
+  const el=document.getElementById('weekPlanContent');
+  const days=['월','화','수','목','금'];
+  const todayDow=new Date().getDay();
+  const monDates=Array.from({length:5},(_,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);return d;});
+  const todayWk=weekKey(0);
+
+  let html='';
+  // 주안 사진
+  if(plan){
+    html+=`<div class="card" style="padding:0;overflow:hidden;cursor:pointer;margin-bottom:12px" onclick="openWeekPlanDetail('${plan.id}')">
+      <div style="background:var(--accent);color:white;padding:10px 14px;font-size:13px;font-weight:700">📸 주간학습안내 (탭하여 크게 보기)</div>
+      ${plan.imageBase64?`<img src="${plan.imageBase64}" style="width:100%;max-height:40vh;object-fit:contain;background:#000;display:block" alt="주안">`:`<div style="height:80px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#F5F3EE">📋</div>`}
+      ${plan.memo?`<div style="padding:10px 14px;font-size:13px;color:var(--text-sub)">${plan.memo}</div>`:''}
+    </div>`;
+  } else {
+    html+=`<div class="card" style="text-align:center;padding:20px;margin-bottom:12px">
+      <div style="font-size:32px;margin-bottom:8px">📋</div>
+      <div style="font-size:13px;color:var(--text-sub)">이번 주 주안 사진이 없습니다</div>
+    </div>`;
+  }
+
+  // 수업 계획 그리드
+  html+=`<div class="card" style="padding:10px 8px">
+    <div class="card-title" style="margin-bottom:10px">📚 수업 준비 내용
+      <button class="btn btn-sm btn-accent" style="margin-left:auto" onclick="saveLessonData()">💾 저장</button>
+    </div>
+    <div style="overflow-x:auto"><div style="min-width:320px"><div class="week-lesson-grid">`;
+  days.forEach((day,di)=>{
+    const isToday=wk===todayWk&&(di+1)===todayDow;
+    html+=`<div class="day-lesson-col"><div class="day-lesson-header${isToday?' today-col':''}">${day}<br><span style="font-size:9px;font-weight:400">${fmtMD(localDateStr(monDates[di]))}</span></div>`;
+    for(let pi=0;pi<6;pi++){
+      const cell=((lessonData[wk]||{})[di]||{})[pi]||{};
+      const subj=cell.subject||'';
+      const cont=cell.content||'';
+      html+=`<div class="period-lesson-cell" onclick="openPeriodEdit(${di},${pi})">
+        <div class="period-num-label">${pi+1}교시</div>
+        ${subj?`<div style="font-size:10px;font-weight:700;color:var(--primary)">${subj}</div>`:''}
+        ${cont?`<div class="period-content-text">${cont}</div>`:'<div style="font-size:10px;color:#ccc">탭하여입력</div>'}
+      </div>`;
+    }
+    html+=`</div>`;
+  });
+  html+=`</div></div></div></div>`;
+  el.innerHTML=html;
+}
+window.changeWeek=function(dir){currentWeekOffset+=dir;renderWeekPlanPage();}
+window.openAddWeekPlan=function(){
+  document.getElementById('wp_image').value='';document.getElementById('wp_memo').value='';document.getElementById('wpPreview').innerHTML='';
+  const wk=weekKey(currentWeekOffset);
+  const plan=weekPlans.find(p=>p.weekKey===wk);
+  if(plan){document.getElementById('wp_memo').value=plan.memo||'';}
+  openModal('modal-addWeekPlan');
+}
+window.previewWpImage=function(input){
+  if(!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=e=>document.getElementById('wpPreview').innerHTML=`<img src="${e.target.result}" style="width:100%;border-radius:8px;max-height:200px;object-fit:contain">`;
+  reader.readAsDataURL(input.files[0]);
+}
+window.saveWeekPlan=async function(){
+  const memo=document.getElementById('wp_memo').value.trim();
+  const file=document.getElementById('wp_image').files[0];
+  const wk=weekKey(currentWeekOffset);
+  let imageBase64='';
+  if(file){imageBase64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});}
+  const existing=weekPlans.find(p=>p.weekKey===wk);
+  if(existing){await setDoc(doc(db,'weekPlans',existing.id),{weekKey:wk,imageBase64:imageBase64||existing.imageBase64,memo,updatedAt:serverTimestamp()});}
+  else{await addDoc(collection(db,'weekPlans'),{weekKey:wk,imageBase64,memo,createdAt:serverTimestamp()});}
+  closeModal('modal-addWeekPlan'); toast('주안 저장!'); await loadWeekPlans(); renderWeekPlanPage();
+}
+window.openPeriodEdit=function(di,pi){
+  pendingPeriod={di,pi};
+  const wk=weekKey(currentWeekOffset);
+  const cell=((lessonData[wk]||{})[di]||{})[pi]||{};
+  const days=['월','화','수','목','금'];
+  document.getElementById('periodEditTitle').textContent=`${days[di]}요일 ${pi+1}교시`;
+  document.getElementById('pe_subject').value=cell.subject||'';
+  document.getElementById('pe_content').value=cell.content||'';
+  openModal('modal-periodEdit');
+}
+window.savePeriodContent=async function(){
+  const subject=document.getElementById('pe_subject').value.trim();
+  const content=document.getElementById('pe_content').value.trim();
+  const wk=weekKey(currentWeekOffset);
+  if(!lessonData[wk])lessonData[wk]={};
+  if(!lessonData[wk][pendingPeriod.di])lessonData[wk][pendingPeriod.di]={};
+  lessonData[wk][pendingPeriod.di][pendingPeriod.pi]={subject,content};
+  closeModal('modal-periodEdit'); toast('입력 완료!'); renderWeekPlanPage();
+}
+window.saveLessonData=async function(){
+  await setDoc(doc(db,'lessonData','all'),lessonData); toast('수업 계획 저장! 📚');
+}
+window.openWeekPlanDetail=function(id){
+  currentWeekPlanId=id;
+  const plan=weekPlans.find(p=>p.id===id); if(!plan)return;
+  document.getElementById('weekPlanDetailContent').innerHTML=`
+    <div class="modal-title">📅 주간학습안내</div>
+    ${plan.imageBase64?`<img src="${plan.imageBase64}" style="width:100%;border-radius:8px;max-height:65vh;object-fit:contain;background:#000;display:block" alt="주안">`:'<div style="text-align:center;padding:30px;font-size:36px">📋</div>'}
+    ${plan.memo?`<div style="margin-top:12px;font-size:14px;white-space:pre-wrap;line-height:1.6">${plan.memo}</div>`:''}`;
+  document.getElementById('deleteWeekPlanBtn').onclick=()=>deleteWeekPlan(id);
+  openModal('modal-weekPlanDetail');
+}
+window.deleteWeekPlan=async function(id){
+  if(!confirm('삭제?'))return;
+  await deleteDoc(doc(db,'weekPlans',id)); closeModal('modal-weekPlanDetail');
+  await loadWeekPlans(); renderWeekPlanPage(); toast('삭제 완료');
+}
+
+// ════════════════════════════════
+// CALENDAR
+// ════════════════════════════════
+async function loadEvents(){
+  const snap=await getDocs(query(collection(db,'events'),orderBy('date')));
+  events=[]; snap.forEach(d=>events.push({id:d.id,...d.data()}));
+  const thisMonth=monthKey(new Date());
+  document.getElementById('sumEvents').textContent=events.filter(e=>(e.date||'').startsWith(thisMonth)).length;
+}
+window.renderCalendar=function(){
+  const d=currentCalMonth;
+  document.getElementById('calMonthLabel').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월`;
+  const firstDay=new Date(d.getFullYear(),d.getMonth(),1).getDay();
+  const daysInMonth=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  const today=new Date(); const todayStr=localDateStr(today);
+  const mk=monthKey(d);
+
+  const dayNames=['일','월','화','수','목','금','토'];
+  let html=dayNames.map(n=>`<div class="cal-header-cell">${n}</div>`).join('');
+
+  // prev month padding
+  const prevDays=new Date(d.getFullYear(),d.getMonth(),0).getDate();
+  for(let i=firstDay-1;i>=0;i--){
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${prevDays-i}</div></div>`;
+  }
+
+  for(let day=1;day<=daysInMonth;day++){
+    const dateStr=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dow=new Date(dateStr).getDay();
+    const dayEvents=events.filter(e=>e.date===dateStr);
+    const isToday=dateStr===todayStr;
+    const sunClass=dow===0?' sunday':dow===6?' saturday':'';
+    html+=`<div class="cal-day${isToday?' today':''}${sunClass}" onclick="openDayEvents('${dateStr}')">
+      <div class="cal-day-num">${day}</div>
+      ${dayEvents.slice(0,2).map(e=>`<div class="cal-event-dot type-${e.type||'기타'}">${e.title}</div>`).join('')}
+      ${dayEvents.length>2?`<div style="font-size:9px;color:var(--text-sub)">+${dayEvents.length-2}</div>`:''}
+    </div>`;
+  }
+
+  // next month padding
+  const totalCells=firstDay+daysInMonth;
+  const remaining=(7-totalCells%7)%7;
+  for(let i=1;i<=remaining;i++) html+=`<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+
+  document.getElementById('calGrid').innerHTML=html;
+  renderEventList();
+}
+window.changeCalMonth=function(dir){currentCalMonth.setMonth(currentCalMonth.getMonth()+dir);renderCalendar();}
+window.openDayEvents=function(dateStr){
+  const dayEvents=events.filter(e=>e.date===dateStr);
+  if(!dayEvents.length){
+    document.getElementById('ev_date').value=dateStr;
+    openAddEvent(); return;
+  }
+  if(dayEvents.length===1){ openEventDetail(dayEvents[0].id); return; }
+  // multiple - show first
+  openEventDetail(dayEvents[0].id);
+}
+window.openAddEvent=function(){
+  document.getElementById('addEventTitle').textContent='📅 행사 추가';
+  if(!document.getElementById('ev_date').value) document.getElementById('ev_date').value=todayStr();
+  document.getElementById('ev_title').value='';
+  document.getElementById('ev_memo').value='';
+  openModal('modal-addEvent');
+}
+window.saveEvent=async function(){
+  const date=document.getElementById('ev_date').value;
+  const title=document.getElementById('ev_title').value.trim();
+  const type=document.getElementById('ev_type').value;
+  const memo=document.getElementById('ev_memo').value.trim();
+  if(!title||!date){toast('날짜와 행사명을 입력하세요');return;}
+  await addDoc(collection(db,'events'),{date,title,type,memo,createdAt:serverTimestamp()});
+  closeModal('modal-addEvent'); toast('행사 추가!');
+  await loadEvents(); renderCalendar();
+}
+window.renderEventList=function(){
+  const mk=monthKey(currentCalMonth);
+  const monthEvents=events.filter(e=>(e.date||'').startsWith(mk));
+  const el=document.getElementById('eventList');
+  if(!monthEvents.length){el.innerHTML='<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">이번 달 행사가 없습니다</div></div>';return;}
+  el.innerHTML=monthEvents.map(e=>`<div class="card" style="padding:12px 14px;cursor:pointer;margin-bottom:8px" onclick="openEventDetail('${e.id}')">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <span style="font-size:12px;font-weight:700;color:var(--primary)">${fmtFull(e.date)}</span>
+      <span class="cal-event-dot type-${e.type||'기타'}" style="position:static;margin:0">${e.type||'기타'}</span>
+    </div>
+    <div style="font-size:14px;font-weight:700">${e.title}</div>
+    ${e.memo?`<div style="font-size:12px;color:var(--text-sub);margin-top:4px">${e.memo}</div>`:''}
+  </div>`).join('');
+}
+window.openEventDetail=function(id){
+  currentEventId=id;
+  const ev=events.find(e=>e.id===id); if(!ev)return;
+  document.getElementById('eventDetailContent').innerHTML=`
+    <div class="modal-title">${ev.title}</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <span class="cal-event-dot type-${ev.type||'기타'}" style="position:static;margin:0">${ev.type||'기타'}</span>
+      <span style="font-size:13px;color:var(--text-sub)">${fmtFull(ev.date)}</span>
+    </div>
+    ${ev.memo?`<div style="font-size:14px;white-space:pre-wrap;line-height:1.6">${ev.memo}</div>`:'<div style="font-size:13px;color:var(--text-sub)">메모 없음</div>'}`;
+  document.getElementById('deleteEventBtn').onclick=()=>deleteEvent(id);
+  openModal('modal-eventDetail');
+}
+window.deleteEvent=async function(id){
+  if(!confirm('삭제?'))return;
+  await deleteDoc(doc(db,'events',id)); closeModal('modal-eventDetail');
+  await loadEvents(); renderCalendar(); toast('삭제 완료');
+}
+
+// ════════════════════════════════
+// RECORDS
+// ════════════════════════════════
+async function loadRecords(){
+  const snap=await getDocs(query(collection(db,'records'),orderBy('date','desc')));
+  records=[]; snap.forEach(d=>records.push({id:d.id,...d.data()}));
+}
+window.openAddRecord=function(preStudentId=null){
+  document.getElementById('rec_date').value=todayStr();
+  document.getElementById('rec_title').value='';document.getElementById('rec_content').value='';
+  document.getElementById('rec_student').value=preStudentId||'전체';
+  openModal('modal-addRecord');
+}
+window.saveRecord=async function(){
+  const studentId=document.getElementById('rec_student').value;
+  const type=document.getElementById('rec_type').value;
+  const date=document.getElementById('rec_date').value;
+  const title=document.getElementById('rec_title').value.trim();
+  const content=document.getElementById('rec_content').value.trim();
+  if(!title&&!content){toast('내용을 입력하세요');return;}
+  const studentName=studentId==='전체'?'전체':(students.find(s=>s.id===studentId)||{}).name||'';
+  await addDoc(collection(db,'records'),{studentId,studentName,type,date,title,content,createdAt:serverTimestamp()});
+  closeModal('modal-addRecord'); toast('기록 저장! 📝'); await loadRecords(); renderRecordList();
+}
+window.selectRecordTab=function(tab,btn){currentRecordTab=tab;document.querySelectorAll('#recordTabs .tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderRecordList();}
+window.renderRecordList=function(){
+  const filtered=currentRecordTab==='all'?records:records.filter(r=>r.type===currentRecordTab);
+  const el=document.getElementById('recordList');
+  if(!filtered.length){el.innerHTML='<div class="empty"><div class="empty-icon">📝</div><div class="empty-text">기록이 없습니다</div></div>';return;}
+  el.innerHTML=filtered.map(r=>`<div class="record-item" onclick="openRecordDetail('${r.id}')">
+    <div class="record-header"><span class="record-student">${r.studentName||'전체'}</span><span class="record-date">${fmtFull(r.date)}</span></div>
+    <span class="record-type type-${r.type}">${r.type}</span>
+    <div style="font-size:13px;font-weight:600;margin-bottom:2px">${r.title||''}</div>
+    <div class="record-content">${r.content||''}</div>
+  </div>`).join('');
+}
+window.openRecordDetail=function(id){
+  currentRecordId=id; const r=records.find(x=>x.id===id); if(!r)return;
+  document.getElementById('recordDetailContent').innerHTML=`
+    <div class="modal-title">${r.title||r.type}</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+      <span class="record-type type-${r.type}">${r.type}</span>
+      <span style="font-size:13px;font-weight:700;color:var(--primary)">${r.studentName||'전체'}</span>
+      <span style="font-size:12px;color:var(--text-sub);margin-left:auto">${fmtFull(r.date)}</span>
+    </div>
+    <div style="font-size:14px;white-space:pre-wrap;line-height:1.6">${r.content||''}</div>`;
+  openModal('modal-recordDetail');
+}
+window.deleteCurrentRecord=async function(){
+  if(!confirm('삭제?'))return;
+  await deleteDoc(doc(db,'records',currentRecordId)); closeModal('modal-recordDetail');
+  toast('삭제 완료'); await loadRecords(); renderRecordList();
+}
+
+// ════════════════════════════════
+// MORE (부장회의 + 학년회의 + 업무)
+// ════════════════════════════════
+async function loadMeetings(){
+  const snap=await getDocs(query(collection(db,'meetings'),orderBy('date','desc')));
+  meetings=[]; snap.forEach(d=>meetings.push({id:d.id,...d.data()}));
+}
+async function loadWorks(){
+  const snap=await getDocs(query(collection(db,'works'),orderBy('date','desc')));
+  works=[]; snap.forEach(d=>works.push({id:d.id,...d.data()}));
+}
+window.selectMoreTab=function(tab,btn){
+  currentMoreTab=tab;
+  document.querySelectorAll('#moreTabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMoreContent();
+}
+window.renderMorePage=function(){
+  renderMoreContent();
+}
+function renderMoreContent(){
+  const el=document.getElementById('moreContent');
+  if(currentMoreTab==='업무'){
+    el.innerHTML=`<button class="btn btn-primary btn-full" onclick="openAddWork()" style="margin-bottom:10px">+ 업무 추가</button><div id="workListInner"></div>`;
+    renderWorks();
+  } else {
+    const type=currentMoreTab;
+    el.innerHTML=`<button class="btn btn-accent btn-full" onclick="openAddMeeting('${type}')" style="margin-bottom:10px">+ ${type} 기록 추가</button><div id="meetingListInner"></div>`;
+    renderMeetings(type);
+  }
+}
+window.openAddMeeting=function(type){
+  addMeetingType=type;
+  document.getElementById('addMeetingTitle').textContent=`${type} 기록`;
+  document.getElementById('mt_date').value=todayStr();
+  document.getElementById('mt_title').value='';document.getElementById('mt_content').value='';
+  openModal('modal-addMeeting');
+}
+window.saveMeeting=async function(){
+  const date=document.getElementById('mt_date').value;
+  const title=document.getElementById('mt_title').value.trim();
+  const content=document.getElementById('mt_content').value.trim();
+  if(!title){toast('제목 입력');return;}
+  await addDoc(collection(db,'meetings'),{date,title,content,type:addMeetingType,createdAt:serverTimestamp()});
+  closeModal('modal-addMeeting'); toast('회의 기록 저장!'); await loadMeetings(); renderMeetings(addMeetingType);
+}
+function renderMeetings(type){
+  const filtered=meetings.filter(m=>m.type===type);
+  const el=document.getElementById('meetingListInner'); if(!el)return;
+  if(!filtered.length){el.innerHTML=`<div class="empty"><div class="empty-icon">${type==='부장회의'?'📣':'🏫'}</div><div class="empty-text">${type} 기록이 없습니다</div></div>`;return;}
+  el.innerHTML=filtered.map(m=>`<div class="meeting-item${type==='학년회의'?' grade-meeting':''}">
+    <div class="meeting-date">${fmtFull(m.date)}</div>
+    <div class="meeting-title">${m.title}</div>
+    <div class="meeting-content">${m.content||''}</div>
+    <button class="btn btn-danger btn-sm" style="margin-top:8px" onclick="deleteMeeting('${m.id}')">삭제</button>
+  </div>`).join('');
+}
+window.deleteMeeting=async function(id){
+  if(!confirm('삭제?'))return;
+  await deleteDoc(doc(db,'meetings',id)); await loadMeetings(); renderMeetings(currentMoreTab); toast('삭제');
+}
+window.openAddWork=function(){document.getElementById('wk_date').value=todayStr();document.getElementById('wk_title').value='';document.getElementById('wk_detail').value='';openModal('modal-addWork');}
+window.saveWork=async function(){
+  const category=document.getElementById('wk_category').value;
+  const date=document.getElementById('wk_date').value;
+  const title=document.getElementById('wk_title').value.trim();
+  const detail=document.getElementById('wk_detail').value.trim();
+  if(!title){toast('제목 입력');return;}
+  await addDoc(collection(db,'works'),{category,date,title,detail,createdAt:serverTimestamp()});
+  closeModal('modal-addWork'); toast('업무 저장!'); await loadWorks(); renderWorks();
+}
+function renderWorks(){
+  const el=document.getElementById('workListInner'); if(!el)return;
+  if(!works.length){el.innerHTML='<div class="empty"><div class="empty-icon">🏫</div><div class="empty-text">업무 기록 없음</div></div>';return;}
+  const cc={'행사':'#FFF3E0;color:#E65100','공문':'#E8EAF6;color:#3949AB','수업':'#E8F5E9;color:var(--success)','연수':'#F3E5F5;color:var(--purple)','행정':'#E0F2F1;color:var(--teal)','기타':'#F5F5F5;color:#666'};
+  el.innerHTML=works.map(w=>{const c=cc[w.category]||'#F5F5F5;color:#666';return`<div class="work-item">
+    <span class="work-category" style="background:${c.split(';')[0]};${c.split(';')[1]}">${w.category}</span>
+    <div class="work-title">${w.title}</div>
+    <div class="work-detail">${w.detail||''}</div>
+    <div class="work-due">📅 ${fmtFull(w.date)}</div>
+    <button class="btn btn-danger btn-sm" style="margin-top:8px" onclick="deleteWork('${w.id}')">삭제</button>
+  </div>`;}).join('');
+}
+window.deleteWork=async function(id){if(!confirm('삭제?'))return;await deleteDoc(doc(db,'works',id));await loadWorks();renderWorks();toast('삭제');}
+
+// ════════════════════════════════
+// HOME
+// ════════════════════════════════
+window.renderHome=function(){
+  // 최근 특이사항
+  const el=document.getElementById('homeRecent');
+  const recent=records.filter(r=>r.type==='특이사항').slice(0,3);
+  el.innerHTML=recent.length?recent.map(r=>`<div class="record-item" onclick="goPage('records')">
+    <div class="record-header"><span class="record-student">${r.studentName}</span><span class="record-date">${fmtFull(r.date)}</span></div>
+    <span class="record-type type-특이사항">특이사항</span>
+    <div class="record-content">${r.content||''}</div>
+  </div>`).join(''):'<div class="empty" style="padding:16px"><div class="empty-icon" style="font-size:28px">✅</div><div class="empty-text">최근 특이사항 없음</div></div>';
+
+  // 이번 달 행사
+  const mk=monthKey(new Date());
+  const monthEvents=events.filter(e=>(e.date||'').startsWith(mk)).slice(0,5);
+  const el2=document.getElementById('homeEvents');
+  el2.innerHTML=monthEvents.length?monthEvents.map(e=>`<div class="card" style="padding:10px 14px;margin-bottom:8px;cursor:pointer" onclick="goPage('calendar')">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;font-weight:700;color:var(--primary)">${fmtFull(e.date)}</span>
+      <span class="cal-event-dot type-${e.type||'기타'}" style="position:static">${e.type}</span>
+      <span style="font-size:13px;font-weight:700">${e.title}</span>
+    </div>
+  </div>`).join(''):'<div class="empty" style="padding:16px"><div class="empty-icon" style="font-size:28px">📅</div><div class="empty-text">이번 달 행사 없음</div></div>';
+}
+
+// ════════════════════════════════
+// INIT
+// ════════════════════════════════
+async function init(){
+  try {
+    await loadStudents();
+    await loadAttendMonth(new Date());
+    await loadChecklist();
+    await loadEval();
+    await loadWeekPlans();
+    await loadEvents();
+    await loadRecords();
+    await loadMeetings();
+    await loadWorks();
+    setSyncStatus(true);
+    renderHome();
+    renderAttendTable();
+    toast('로드 완료! ✅');
+  } catch(e) {
+    console.error(e); setSyncStatus(false); toast('연결 오류 확인 필요');
+  }
+}
+init();
+</script>
+</body>
+</html>
