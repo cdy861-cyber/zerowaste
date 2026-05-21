@@ -1173,17 +1173,20 @@ window.saveTwelveKey = async function() {
   }
 };
 
-// 🔑 API 키 저장 및 로드 기능 추가
+// ══════════════════════════════════
+// 🔑 API 키 저장 및 로드 기능 (Firebase 연동 보완)
+// ══════════════════════════════════
 window.openTwelveKeyModal = function() {
   openModal('modal-twelvekey');
+  // 1. 우선 로컬 스토리지에서 먼저 가져와서 보여줍니다.
   const savedKey = localStorage.getItem('twelve_apikey') || '';
-  if (document.getElementById('twelve_apikey')) {
-    document.getElementById('twelve_apikey').value = savedKey;
+  if ($('twelve_apikey')) {
+    $('twelve_apikey').value = savedKey;
   }
 };
 
 window.saveTwelveKey = async function() {
-  const keyInput = document.getElementById('twelve_apikey');
+  const keyInput = $('twelve_apikey');
   if (!keyInput) return;
   
   const key = keyInput.value.trim();
@@ -1192,11 +1195,38 @@ window.saveTwelveKey = async function() {
     return;
   }
   
-  localStorage.setItem('twelve_apikey', key);
-  closeModal('modal-twelvekey');
-  toast('API 키가 성공적으로 저장되었습니다! 🔑');
+  try {
+    // 1. 브라우저 로컬 스토리지에 안전하게 저장
+    localStorage.setItem('twelve_apikey', key);
+    
+    // 2. 가계부 내부 전역 변수(있는 경우)에 반영
+    if (typeof TWELVE_DATA_API_KEY !== 'undefined') {
+      TWELVE_DATA_API_KEY = key;
+    }
+    
+    // 3. 파이어베이스 로그인 상태라면 데이터베이스에도 실시간 동기화 저장
+    if (typeof auth !== 'undefined' && auth.currentUser && typeof db !== 'undefined') {
+      const userRef = doc(db, 'users', auth.currentUser.uid);
+      await setDoc(userRef, { twelve_apikey: key }, { merge: true });
+    }
+    
+    // 4. 성공 알림 및 모달 닫기
+    closeModal('modal-twelvekey');
+    toast('API 키가 성공적으로 저장되었습니다! 🔑');
+    
+    // 5. 주가 데이터 새로고침 함수가 있다면 즉시 실행
+    if (typeof loadStockPrices === 'function') {
+      await loadStockPrices();
+    } else if (typeof refreshStocks === 'function') {
+      await refreshStocks();
+    }
+  } catch (err) {
+    console.error("API Key 저장 중 오류 발생:", err);
+    // 데이터베이스 권한 문제가 있더라도 브라우저 저장은 성공했으므로 닫아줍니다.
+    closeModal('modal-twelvekey');
+    toast('API 키가 로컬에 저장되었습니다! 🔑');
+  }
 };
-
 // ══════════════════════════════════
 // 초기화
 // ══════════════════════════════════
