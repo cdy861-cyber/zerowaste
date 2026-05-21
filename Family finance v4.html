@@ -312,7 +312,7 @@ select.form-input{-webkit-appearance:none;appearance:none;}
   <div style="display:flex;gap:8px;margin-bottom:12px">
     <button class="btn btn-sage" style="flex:1" onclick="openStockModal()">+ 종목 추가</button>
     <button class="btn btn-outline btn-sm" onclick="refreshStocks()">🔄 시세</button>
-    <button class="btn btn-outline btn-sm" onclick="openApiKeyModal()" id="apiKeyBtn">🔑 API키</button>
+    <button class="btn btn-outline btn-sm" onclick="openTwelveKeyModal()" id="twelveKeyBtn">🔑 API키</button>
   </div>
   <div class="scard" style="margin-bottom:12px">
     <div class="scard-bd" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px">
@@ -532,29 +532,34 @@ select.form-input{-webkit-appearance:none;appearance:none;}
 </div>
 
 
-<!-- MODAL: API 키 설정 -->
-<div class="modal-overlay" id="modal-apikey">
+<!-- MODAL: Twelve Data API 키 설정 -->
+<div class="modal-overlay" id="modal-twelvekey">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">🔑 Anthropic API 키 설정</div>
-    <div style="background:#FEF3C7;border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:#92400E;">
-      <div style="font-weight:700;margin-bottom:4px">⚠️ 주의사항</div>
-      API 키는 이 기기에만 저장되며 외부로 전송되지 않아요.<br>
-      시세갱신·영수증OCR 기능에 사용됩니다.
+    <div class="modal-title">🔑 주가 API 키 설정</div>
+    <div style="background:#EFF6FF;border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:#1E40AF;">
+      <div style="font-weight:700;margin-bottom:6px">📌 Twelve Data 무료 API</div>
+      • 이메일 가입만 하면 즉시 무료 발급<br>
+      • 하루 800회 호출 가능 (충분해요!)<br>
+      • 국내주식·해외주식·ETF 모두 지원<br>
+      • 🔒 키는 이 기기에만 저장, 절대 외부 전송 없음
+    </div>
+    <div style="background:#F0FDF4;border-radius:10px;padding:10px;margin-bottom:14px;font-size:12px;">
+      <div style="font-weight:700;color:#166534;margin-bottom:4px">📋 발급 방법</div>
+      1. <a href="https://twelvedata.com/register" target="_blank" style="color:#1D4ED8;font-weight:700">twelvedata.com/register</a> 접속<br>
+      2. 이메일로 무료 가입<br>
+      3. 대시보드 → API Keys 복사
     </div>
     <div class="form-group">
       <label class="form-label">API 키 입력</label>
-      <input class="form-input" id="apiKeyInput" type="password" placeholder="sk-ant-api03-...">
-      <div style="font-size:11px;color:var(--text-sub);margin-top:4px">
-        👉 <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--primary)">console.anthropic.com</a> 에서 발급
-      </div>
+      <input class="form-input" id="twelveKeyInput" type="password" placeholder="예: a1b2c3d4e5f6...">
     </div>
-    <div id="apiKeyStatus" style="font-size:12px;margin-bottom:12px;"></div>
+    <div id="twelveKeyStatus" style="font-size:12px;margin-bottom:12px;"></div>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-primary btn-full" onclick="saveApiKey()">저장</button>
-      <button class="btn btn-outline" onclick="closeModal('modal-apikey')">닫기</button>
+      <button class="btn btn-primary btn-full" onclick="saveTwelveKey()">저장</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-twelvekey')">닫기</button>
     </div>
-    <button class="btn btn-full" style="margin-top:8px;background:var(--red-light);color:var(--red);border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;" onclick="clearApiKey()">🗑 API 키 삭제</button>
+    <button class="btn btn-full" style="margin-top:8px;background:var(--red-light);color:var(--red);border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;" onclick="clearTwelveKey()">🗑 API 키 삭제</button>
   </div>
 </div>
 
@@ -993,45 +998,54 @@ function updateStockSummary(list){
 window.refreshStocks=async function(){
   const targets=stocks.filter(s=>s.name);
   if(!targets.length){toast('종목이 없습니다');return;}
-  if(!getApiKey()){toast('🔑 API 키를 먼저 설정해주세요!');openApiKeyModal();return;}
+  const apiKey=localStorage.getItem('twelvedata_api_key')||'';
+  if(!apiKey){toast('🔑 Twelve Data API 키를 먼저 설정해주세요!');openTwelveKeyModal();return;}
+
   const btn=document.querySelector('[onclick="refreshStocks()"]');
   if(btn){btn.disabled=true;btn.textContent='조회 중...';}
-  toast('AI가 현재 시세 조회 중...');
-  const stockList=targets.map(s=>s.code?s.name+'('+s.code+')':s.name).join(', ');
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        tools:[{type:'web_search_20250305',name:'web_search'}],
-        messages:[{role:'user',content:'다음 한국 주식의 오늘 현재가를 검색해서 JSON만 반환. 다른 말 없이 JSON만.\n종목: '+stockList+'\n형식: {"prices":[{"name":"종목명","price":숫자}]}'}]
-      })
-    });
-    const data=await resp.json();
-    const text=data.content.filter(b=>b.type==='text').map(b=>b.text).join('').replace(/```json|```/g,'').trim();
-    const m=text.match(/{[\s\S]*}/);
-    if(!m)throw new Error('파싱실패: '+text.slice(0,60));
-    const parsed=JSON.parse(m[0]);
-    let ok=0;
-    for(const item of (parsed.prices||[])){
-      const stock=targets.find(s=>s.name===item.name||s.name.includes(item.name)||item.name.includes(s.name));
-      if(stock&&item.price>0){
-        const price=Math.round(item.price);
-        const updatedAt=new Date().toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-        await updateDoc(doc(db,'stocks',stock.id),{currentPrice:price,priceUpdatedAt:updatedAt});
-        stock.currentPrice=price;stock.priceUpdatedAt=updatedAt;ok++;
+  toast('시세 조회 중...');
+
+  let ok=0,fail=0;
+  for(const s of targets){
+    // 종목코드 처리: 140410.KQ -> 140410, KRX 거래소
+    let sym=s.code||s.name;
+    let exchange='KRX';
+    let isForeign=false;
+    if(sym.includes('.KS')){sym=sym.replace('.KS','');exchange='KRX';}
+    else if(sym.includes('.KQ')){sym=sym.replace('.KQ','');exchange='KOSDAQ';}
+    else if(!sym.match(/^[0-9]+$/)){isForeign=true;exchange='';}// 해외: AAPL, QQQ 등
+
+    const baseUrl='https://api.twelvedata.com/price?apikey='+apiKey
+      +'&symbol='+encodeURIComponent(sym)
+      +(exchange?'&exchange='+exchange:'');
+    // allorigins 프록시로 CORS 우회
+    const proxyUrl='https://api.allorigins.win/raw?url='+encodeURIComponent(baseUrl);
+
+    try{
+      // 먼저 직접 시도, 실패하면 프록시
+      let data=null;
+      for(const url of [baseUrl, proxyUrl]){
+        try{
+          const r=await fetch(url,{headers:{Accept:'application/json'}});
+          data=await r.json();
+          if(data&&data.price) break;
+        }catch(e){}
       }
+      if(data&&data.price&&Number(data.price)>0){
+        const price=Math.round(Number(data.price));
+        const updatedAt=new Date().toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+        await updateDoc(doc(db,'stocks',s.id),{currentPrice:price,priceUpdatedAt:updatedAt});
+        s.currentPrice=price;s.priceUpdatedAt=updatedAt;ok++;
+      } else {
+        console.warn('시세없음:',s.name, data);fail++;
+      }
+    }catch(e){
+      console.error(s.name,'오류:',e);fail++;
     }
-    renderStockList();
-    toast(ok>0?('✅ '+ok+'개 갱신완료!'):'❌ 조회 실패, 다시 시도');
-  }catch(e){
-    console.error(e);
-    toast('❌ 오류: '+e.message.slice(0,50));
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='🔄 시세 갱신';}
   }
+  renderStockList();
+  toast(ok>0?('✅ '+ok+'개 갱신완료!'+(fail>0?' ('+fail+'개 실패)':'')):'❌ 전체 실패 - API키 확인해주세요');
+  if(btn){btn.disabled=false;btn.textContent='🔄 시세 갱신';}
 };
 window.openStockModal=function(id){
   editStockId=id||null;$('stockModalTitle').textContent=id?'📈 종목 수정':'📈 종목 추가';
