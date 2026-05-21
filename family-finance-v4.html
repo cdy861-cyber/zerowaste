@@ -998,7 +998,7 @@ function updateStockSummary(list){
 window.refreshStocks=async function(){
   const targets=stocks.filter(s=>s.name);
   if(!targets.length){toast('종목이 없습니다');return;}
-  const apiKey=localStorage.getItem('twelvedata_api_key')||'';
+  const apiKey=localStorage.getItem('twelve_apikey')||'';
   if(!apiKey){toast('🔑 Twelve Data API 키를 먼저 설정해주세요!');openTwelveKeyModal();return;}
 
   const btn=document.querySelector('[onclick="refreshStocks()"]');
@@ -1172,13 +1172,6 @@ window.saveTwelveKey = async function() {
     // 3. 서버 저장에 에러가 나더라도, 화면 상에서는 무조건 성공 팝업을 띄우고 모달을 닫아줍니다.
     closeModal('modal-twelvekey');
     toast('API 키가 성공적으로 저장되었습니다! 🔑');
-    
-    // 4. 주가 새로고침 시도
-    if (typeof loadStockPrices === 'function') {
-      loadStockPrices().catch(() => {});
-    } else if (typeof refreshStocks === 'function') {
-      refreshStocks();
-    }
   }
 };
 
