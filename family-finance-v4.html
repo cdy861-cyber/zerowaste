@@ -1172,6 +1172,31 @@ window.saveTwelveKey = async function() {
     loadStockPrices();
   }
 };
+
+// 🔑 API 키 저장 및 로드 기능 추가
+window.openTwelveKeyModal = function() {
+  openModal('modal-twelvekey');
+  const savedKey = localStorage.getItem('twelve_apikey') || '';
+  if (document.getElementById('twelve_apikey')) {
+    document.getElementById('twelve_apikey').value = savedKey;
+  }
+};
+
+window.saveTwelveKey = async function() {
+  const keyInput = document.getElementById('twelve_apikey');
+  if (!keyInput) return;
+  
+  const key = keyInput.value.trim();
+  if (!key) {
+    toast('API 키를 입력해주세요.');
+    return;
+  }
+  
+  localStorage.setItem('twelve_apikey', key);
+  closeModal('modal-twelvekey');
+  toast('API 키가 성공적으로 저장되었습니다! 🔑');
+};
+
 // ══════════════════════════════════
 // 초기화
 // ══════════════════════════════════
