@@ -472,14 +472,14 @@ select.form-input{-webkit-appearance:none;appearance:none;}
         <select class="form-input" id="s_holder"><option>혜진</option><option>동녕</option><option>유준</option><option>공동</option></select>
       </div>
       <div class="form-group"><label class="form-label">종류</label>
-        <select class="form-input" id="s_assetType"><option>국내주식</option><option>해외주식</option><option>ETF</option><option>ETF(해외)</option><option>펀드</option><option>채권</option><option>기타</option></select>
+        <select class="form-input" id="s_assetType" onchange="updateAvgLabel()"><option>국내주식</option><option>해외주식</option><option>ETF</option><option>ETF(해외)</option><option>펀드</option><option>채권</option><option>기타</option></select>
       </div>
     </div>
     <div class="form-group"><label class="form-label">종목코드 (시세갱신용)</label><input class="form-input" id="s_code" placeholder="005930.KS / AAPL / QQQ"></div>
     <div class="form-group"><label class="form-label">종목명</label><input class="form-input" id="s_name" placeholder="예: 삼성전자, Apple, QQQ"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">보유수량 (주)</label><input class="form-input" type="number" id="s_qty" placeholder="0"></div>
-      <div class="form-group"><label class="form-label">평균매입가 (원)</label><input class="form-input" type="number" id="s_avg" placeholder="0"></div>
+      <div class="form-group"><label class="form-label" id="s_avg_label">평균매입가 (원)</label><input class="form-input" type="number" id="s_avg" placeholder="0"></div>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-sage btn-full" onclick="saveStock()">저장</button>
@@ -964,22 +964,28 @@ function renderStockList(){
   const el=$('stockList');
   if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📈</div><div>보유 종목 없음</div></div>`;updateStockSummary([]);return;}
   el.innerHTML=list.map(s=>{
+    const foreign=isForeignAsset(s.assetType);
+    const fmtD=(n)=>'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const fmtCur=(n)=>foreign?fmtD(n):fmt(n)+'원';
     const evalAmt=(s.currentPrice||s.avgPrice||0)*s.qty;
     const cost=(s.avgPrice||0)*s.qty;const pnl=evalAmt-cost;
     const rate=cost?((pnl/cost)*100).toFixed(1):0;const isPos=pnl>=0;
     const typeBadge={국내주식:'badge-navy',해외주식:'badge-gold','ETF':'badge-sage','ETF(해외)':'badge-rose',펀드:'badge-brown',채권:'badge-brown',기타:'badge-brown'};
+    const avgDisplay=foreign?fmtD(s.avgPrice):fmt(s.avgPrice)+'원';
+    const pnlDisplay=foreign?'$'+Math.abs(pnl).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):fmt(Math.abs(pnl));
+    const curPriceDisplay=s.currentPrice?(foreign?'현재가 '+fmtD(s.currentPrice):'현재가 '+fmt(s.currentPrice)+'원'):'';
     return`<div class="stock-item">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
           <div style="font-size:13px;font-weight:700">${s.name} <span class="badge ${typeBadge[s.assetType]||'badge-brown'}">${s.assetType||''}</span> <span class="badge badge-navy" style="font-size:9px">${s.holder}</span></div>
-          <div style="font-size:10px;color:var(--text-sub);margin-top:2px">${s.code||''} · ${fmt(s.qty)}주 · 평균 ${fmt(s.avgPrice)}원</div>
+          <div style="font-size:10px;color:var(--text-sub);margin-top:2px">${s.code||''} · ${fmt(s.qty)}주 · 평균 ${avgDisplay}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-family:'Nanum Myeongjo',serif;font-size:14px;font-weight:800">${fmt(evalAmt)}원</div>
-          <div style="font-size:11px;font-weight:700;color:${isPos?'var(--rose)':'var(--navy)'}">${isPos?'▲':'▼'} ${fmt(Math.abs(pnl))} (${rate}%)</div>
+          <div style="font-family:'Nanum Myeongjo',serif;font-size:14px;font-weight:800">${fmtCur(evalAmt)}</div>
+          <div style="font-size:11px;font-weight:700;color:${isPos?'var(--rose)':'var(--navy)'}">${isPos?'▲':'▼'} ${pnlDisplay} (${rate}%)</div>
         </div>
       </div>
-      ${s.currentPrice?`<div style="font-size:10px;color:var(--text-sub);margin-top:2px">현재가 ${fmt(s.currentPrice)}원</div>`:''}
+      ${curPriceDisplay?`<div style="font-size:10px;color:var(--text-sub);margin-top:2px">${curPriceDisplay}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:8px">
         <button class="btn btn-sm btn-outline" onclick="openStockModal('${s.id}')">수정</button>
         <button class="btn btn-sm" style="background:var(--rose-light);color:var(--rose);border:none;border-radius:6px;cursor:pointer;padding:5px 10px;font-size:11px" onclick="deleteStock('${s.id}')">삭제</button>
@@ -1033,7 +1039,7 @@ window.refreshStocks=async function(){
         }catch(e){}
       }
       if(data&&data.price&&Number(data.price)>0){
-        const price=Math.round(Number(data.price));
+        const price=isForeignAsset(s.assetType)?Number(Number(data.price).toFixed(2)):Math.round(Number(data.price));
         const updatedAt=new Date().toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
         await updateDoc(doc(db,'stocks',s.id),{currentPrice:price,priceUpdatedAt:updatedAt});
         s.currentPrice=price;s.priceUpdatedAt=updatedAt;ok++;
@@ -1048,10 +1054,19 @@ window.refreshStocks=async function(){
   toast(ok>0?('✅ '+ok+'개 갱신완료!'+(fail>0?' ('+fail+'개 실패)':'')):'❌ 전체 실패 - API키 확인해주세요');
   if(btn){btn.disabled=false;btn.textContent='🔄 시세 갱신';}
 };
+// 해외 자산 여부 판단
+function isForeignAsset(assetType){
+  return assetType==='해외주식'||assetType==='ETF(해외)';
+}
+window.updateAvgLabel=function(){
+  const type=$('s_assetType').value;
+  $('s_avg_label').textContent=isForeignAsset(type)?'평균매입가 ($)':'평균매입가 (원)';
+};
 window.openStockModal=function(id){
   editStockId=id||null;$('stockModalTitle').textContent=id?'📈 종목 수정':'📈 종목 추가';
   if(id){const s=stocks.find(x=>x.id===id);if(s){$('s_holder').value=s.holder;$('s_assetType').value=s.assetType||'국내주식';$('s_code').value=s.code||'';$('s_name').value=s.name;$('s_qty').value=s.qty;$('s_avg').value=s.avgPrice;}}
-  else{['s_code','s_name','s_qty','s_avg'].forEach(i=>$(i).value='');}
+  else{['s_code','s_name','s_qty','s_avg'].forEach(i=>$(i).value='');$('s_assetType').value='국내주식';}
+  updateAvgLabel();
   openModal('modal-stock');
 };
 window.saveStock=async function(){
