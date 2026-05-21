@@ -1130,7 +1130,48 @@ window.saveRepay=async function(){
   await addDoc(collection(db,'loanRepayments'),{loanId:repayLoanId,loanName:l.name,amount:amt,date:$('lr_date').value,memo:$('lr_memo').value,createdAt:serverTimestamp()});
   l.balance=nb;closeModal('modal-repay');toast(`상환! 잔액 ${fmt(nb)}만원`);renderLoanList();
 };
+// ══════════════════════════════════
+// API 키 모달 제어 추가 함수
+// ══════════════════════════════════
+window.openTwelveKeyModal = function() {
+  // 모달 ID가 대소문자 구분을 하므로 'modal-twelvekey'로 정확히 지정
+  openModal('modal-twelvekey');
+  
+  // 기존에 저장된 API 키가 변수나 로컬스토리지에 있다면 불러와서 input에 넣어줌
+  const savedKey = localStorage.getItem('twelve_apikey') || '';
+  if ($('twelve_apikey')) {
+    $('twelve_apikey').value = savedKey;
+  }
+};
 
+window.saveTwelveKey = async function() {
+  const keyInput = $('twelve_apikey');
+  if (!keyInput) return;
+  
+  const key = keyInput.value.trim();
+  if (!key) {
+    toast('API 키를 입력해주세요.');
+    return;
+  }
+  
+  // 브라우저에 API 키 저장
+  localStorage.setItem('twelve_apikey', key);
+  
+  // 전역 변수가 존재한다면 동기화 (예: 주가 조회용 변수)
+  if (typeof TWELVE_DATA_API_KEY !== 'undefined') {
+    TWELVE_DATA_API_KEY = key;
+  }
+  
+  closeModal('modal-twelvekey');
+  toast('API 키가 안전하게 저장되었습니다! 🔑');
+  
+  // 주가 새로고침 함수가 존재하면 실행
+  if (typeof refreshStocks === 'function') {
+    refreshStocks();
+  } else if (typeof loadStockPrices === 'function') {
+    loadStockPrices();
+  }
+};
 // ══════════════════════════════════
 // 초기화
 // ══════════════════════════════════
