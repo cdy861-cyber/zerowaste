@@ -1018,17 +1018,18 @@ window.refreshStocks=async function(){
     const baseUrl='https://api.twelvedata.com/price?apikey='+apiKey
       +'&symbol='+encodeURIComponent(sym)
       +(exchange?'&exchange='+exchange:'');
-    // allorigins 프록시로 CORS 우회
-    const proxyUrl='https://api.allorigins.win/raw?url='+encodeURIComponent(baseUrl);
+    // CORS 우회 프록시 (여러 개 순서대로 시도)
+    const proxyUrl1='https://corsproxy.io/?'+encodeURIComponent(baseUrl);
+    const proxyUrl2='https://api.allorigins.win/raw?url='+encodeURIComponent(baseUrl);
 
     try{
-      // 먼저 직접 시도, 실패하면 프록시
       let data=null;
-      for(const url of [baseUrl, proxyUrl]){
+      for(const url of [baseUrl, proxyUrl1, proxyUrl2]){
         try{
-          const r=await fetch(url,{headers:{Accept:'application/json'}});
-          data=await r.json();
-          if(data&&data.price) break;
+          const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+          const text=await r.text();
+          data=JSON.parse(text);
+          if(data&&data.price&&Number(data.price)>0) break;
         }catch(e){}
       }
       if(data&&data.price&&Number(data.price)>0){
