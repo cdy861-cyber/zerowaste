@@ -309,12 +309,12 @@ select.form-input{-webkit-appearance:none;appearance:none;}
      📈 주식 탭
 ══════════════════════════════════ -->
 <div class="page" id="page-stock">
-  <div style="display:flex;gap:8px;margin-bottom:12px">
+  <div style="display:flex;gap:8px;margin-bottom:12px;position:relative;z-index:10">
     <button class="btn btn-sage" style="flex:1" onclick="openStockModal()">+ 종목 추가</button>
     <button class="btn btn-outline btn-sm" onclick="refreshStocks()">🔄 시세</button>
     <button class="btn btn-outline btn-sm" onclick="openTwelveKeyModal()" id="twelveKeyBtn">🔑 API키</button>
   </div>
-  <div class="scard" style="margin-bottom:12px">
+  <div class="scard" style="margin-bottom:12px;position:relative;z-index:1">
     <div class="scard-bd" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px">
       <div><div style="font-size:10px;color:var(--text-sub);margin-bottom:4px">총 평가금액</div><div style="font-family:'Nanum Myeongjo',serif;font-size:20px;font-weight:800;color:var(--navy)" id="stockTotalEval">-</div></div>
       <div style="text-align:right"><div style="font-size:10px;color:var(--text-sub);margin-bottom:4px">총 손익</div><div style="font-family:'Nanum Myeongjo',serif;font-size:16px;font-weight:800" id="stockTotalPnl">-</div></div>
