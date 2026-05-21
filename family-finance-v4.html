@@ -552,11 +552,11 @@ select.form-input{-webkit-appearance:none;appearance:none;}
     </div>
     <div class="form-group">
       <label class="form-label">API 키 입력</label>
-      <input class="form-input" id="twelveKeyInput" type="password" placeholder="예: a1b2c3d4e5f6...">
+      <input class="form-input" id="twelve_apikey" type="password" placeholder="예: a1b2c3d4e5f6...">
     </div>
     <div id="twelveKeyStatus" style="font-size:12px;margin-bottom:12px;"></div>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-primary btn-full" onclick="saveTwelveKey()">저장</button>
+      <button class="btn btn-gold btn-full" onclick="saveTwelveKey()">저장</button>
       <button class="btn btn-outline" onclick="closeModal('modal-twelvekey')">닫기</button>
     </div>
     <button class="btn btn-full" style="margin-top:8px;background:var(--red-light);color:var(--red);border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;" onclick="clearTwelveKey()">🗑 API 키 삭제</button>
@@ -1131,50 +1131,7 @@ window.saveRepay=async function(){
   l.balance=nb;closeModal('modal-repay');toast(`상환! 잔액 ${fmt(nb)}만원`);renderLoanList();
 };
 // ══════════════════════════════════
-// API 키 모달 제어 추가 함수
-// ══════════════════════════════════
-window.openTwelveKeyModal = function() {
-  // 모달 ID가 대소문자 구분을 하므로 'modal-twelvekey'로 정확히 지정
-  openModal('modal-twelvekey');
-  
-  // 기존에 저장된 API 키가 변수나 로컬스토리지에 있다면 불러와서 input에 넣어줌
-  const savedKey = localStorage.getItem('twelve_apikey') || '';
-  if ($('twelve_apikey')) {
-    $('twelve_apikey').value = savedKey;
-  }
-};
-
-window.saveTwelveKey = async function() {
-  const keyInput = $('twelve_apikey');
-  if (!keyInput) return;
-  
-  const key = keyInput.value.trim();
-  if (!key) {
-    toast('API 키를 입력해주세요.');
-    return;
-  }
-  
-  // 브라우저에 API 키 저장
-  localStorage.setItem('twelve_apikey', key);
-  
-  // 전역 변수가 존재한다면 동기화 (예: 주가 조회용 변수)
-  if (typeof TWELVE_DATA_API_KEY !== 'undefined') {
-    TWELVE_DATA_API_KEY = key;
-  }
-  
-  closeModal('modal-twelvekey');
-  toast('API 키가 안전하게 저장되었습니다! 🔑');
-  
-  // 주가 새로고침 함수가 존재하면 실행
-  if (typeof refreshStocks === 'function') {
-    refreshStocks();
-  } else if (typeof loadStockPrices === 'function') {
-    loadStockPrices();
-  }
-};
-
-// ══════════════════════════════════
-// 🔑 API 키 저장 및 로드 기능 (에러 방지 최종본)
+// 🔑 API 키 저장 및 로드 기능
 // ══════════════════════════════════
 window.openTwelveKeyModal = function() {
   openModal('modal-twelvekey');
@@ -1223,6 +1180,15 @@ window.saveTwelveKey = async function() {
       refreshStocks();
     }
   }
+};
+
+window.clearTwelveKey = function() {
+  if (!confirm('저장된 API 키를 삭제할까요?')) return;
+  localStorage.removeItem('twelve_apikey');
+  const input = document.getElementById('twelve_apikey');
+  if (input) input.value = '';
+  closeModal('modal-twelvekey');
+  toast('API 키가 삭제되었습니다.');
 };
 // ══════════════════════════════════
 // 초기화
