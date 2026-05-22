@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>독도탐험대 — 우리 땅 독도</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   DESIGN SYSTEM
+   배경: 심해 네이비  |  패널: 크림 페이퍼
+   포인트: 코랄 + 골드  |  성공: 에메랄드
+═══════════════════════════════════════ */
+:root{
+  --ink:#0d1b2a; --navy:#1b2d45; --ocean:#1e4976; --teal:#2a7f8a;
+  --coral:#e8603c; --gold:#c9973a; --cream:#f5f0e8; --paper:#ede8db;
+  --mist:#a8bcd4; --white:#fdfcf9; --ok:#3a8c5c; --no:#c0392b;
+  --r:14px; --rl:22px;
+  --sh:0 4px 24px rgba(13,27,42,.12);
+  --shd:0 12px 48px rgba(13,27,42,.22);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--ink);color:var(--ink);min-height:100vh;overflow-x:hidden}
+
+/* ── BG ── */
+.bg{position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 80% 50% at 20% 100%,#1e4976 0%,transparent 60%),
+             radial-gradient(ellipse 60% 40% at 80% 90%,#2a7f8a33 0%,transparent 50%),
+             linear-gradient(180deg,#0d1b2a 0%,#1b2d45 60%,#1e4976 100%);
+  overflow:hidden}
+.wave{position:absolute;bottom:0;left:-50%;width:200%;height:100px;
+  background:radial-gradient(ellipse 50% 80% at 50% 100%,#2a7f8a1a,transparent);
+  border-radius:50% 50% 0 0;animation:wv 9s ease-in-out infinite}
+.wave:nth-child(2){animation-delay:-3s;opacity:.5;height:70px}
+.wave:nth-child(3){animation-delay:-6s;opacity:.3;height:50px}
+@keyframes wv{0%,100%{transform:translateX(-4%) scaleY(1)}50%{transform:translateX(4%) scaleY(1.1)}}
+
+/* ── APP SHELL ── */
+#app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* ── HEADER ── */
+header{padding:18px 18px 0;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:40px;height:40px;background:linear-gradient(135deg,var(--coral),var(--gold));
+  border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;
+  box-shadow:0 4px 16px rgba(232,96,60,.4);flex-shrink:0}
+.logo-name{font-family:'Black Han Sans',sans-serif;font-size:1.35rem;color:var(--white);letter-spacing:1px}
+.logo-sub{font-size:.68rem;color:var(--mist);font-weight:300;letter-spacing:2px;text-transform:uppercase}
+.hbadge{background:rgba(201,151,58,.18);border:1px solid rgba(201,151,58,.4);
+  color:var(--gold);padding:6px 13px;border-radius:20px;font-size:.74rem;font-weight:700}
+
+/* ── NAV ── */
+nav{display:flex;gap:3px;padding:14px 14px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+nav::-webkit-scrollbar{display:none}
+.nb{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:9px 13px 7px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.06);border-radius:12px 12px 0 0;
+  color:var(--mist);font-family:'Noto Sans KR',sans-serif;
+  font-size:.7rem;font-weight:600;transition:all .22s;
+  border-bottom:2px solid transparent;letter-spacing:.3px}
+.nb:hover{background:rgba(255,255,255,.12);color:var(--white)}
+.nb.on{background:var(--cream);color:var(--ink);border-bottom-color:var(--coral)}
+.nb .ni{font-size:1.05rem;line-height:1}
+.nb .step{font-size:.58rem;color:var(--coral);font-weight:800;letter-spacing:.5px}
+.nb.on .step{color:var(--coral)}
+
+/* ── MAIN PANEL ── */
+main{flex:1;background:var(--cream);border-radius:20px 20px 0 0;padding:22px 16px 90px;min-height:72vh}
+.sec{display:none;animation:si .28s ease}
+.sec.on{display:block}
+@keyframes si{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CARD ── */
+.card{background:var(--white);border-radius:var(--rl);padding:20px;margin-bottom:13px;
+  box-shadow:var(--sh);border:1px solid rgba(13,27,42,.05)}
+.clabel{font-size:.68rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  color:var(--teal);margin-bottom:8px}
+.ctitle{font-family:'Black Han Sans',sans-serif;font-size:1.15rem;color:var(--ink);
+  margin-bottom:12px;line-height:1.3}
+
+/* ── HERO BANNER ── */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--ocean) 100%);
+  border-radius:var(--rl);padding:28px 22px;margin-bottom:13px;
+  position:relative;overflow:hidden;color:var(--white)}
+.hero::before{content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='52' height='52' viewBox='0 0 52 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='.03'%3E%3Cpath d='M30 30v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM30 4V0h-2v4h-4v2h4v4h2V6h4V4h-4zM4 30v-4H2v4H0v2h2v4h2v-4h4v-2H4zM4 4V0H2v4H0v2h2v4h2V6h4V4H4z'/%3E%3C/g%3E%3C/svg%3E")}
+.hero-tag{display:inline-block;background:rgba(232,96,60,.22);border:1px solid rgba(232,96,60,.5);
+  color:var(--coral);font-size:.68rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;margin-bottom:12px}
+.hero h1{font-family:'Black Han Sans',sans-serif;font-size:1.9rem;line-height:1.2;margin-bottom:8px}
+.hero h1 em{color:var(--gold);font-style:normal}
+.hero p{font-size:.88rem;color:var(--mist);line-height:1.7;font-weight:300}
+.hero-deco{position:absolute;right:-18px;bottom:-18px;font-size:6.5rem;opacity:.07;line-height:1;pointer-events:none}
+
+/* ── STEP BADGE ── */
+.step-badge{display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--coral),#c94d2a);
+  color:white;padding:8px 16px;border-radius:20px;
+  font-family:'Black Han Sans',sans-serif;font-size:.88rem;
+  box-shadow:0 4px 14px rgba(232,96,60,.35);margin-bottom:14px}
+
+/* ── PROGRESS ── */
+.prog-wrap{background:var(--paper);border-radius:var(--r);padding:16px;margin-bottom:13px}
+.prog-bar{background:rgba(13,27,42,.1);border-radius:6px;height:8px;overflow:hidden;margin:8px 0 6px}
+.prog-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--coral),var(--gold));transition:width .6s cubic-bezier(.4,0,.2,1)}
+.prog-meta{display:flex;justify-content:space-between;font-size:.78rem;color:#777}
+.prog-meta strong{color:var(--ink)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:13px 20px;border:none;border-radius:var(--r);
+  font-family:'Noto Sans KR',sans-serif;font-size:.9rem;font-weight:700;
+  cursor:pointer;transition:all .2s;width:100%;margin-top:10px}
+.btn-p{background:linear-gradient(135deg,var(--coral),#c94d2a);color:white;
+  box-shadow:0 4px 16px rgba(232,96,60,.32)}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(232,96,60,.42)}
+.btn-o{background:linear-gradient(135deg,var(--ocean),var(--teal));color:white;
+  box-shadow:0 4px 16px rgba(30,73,118,.28)}
+.btn-s{background:var(--paper);color:var(--ink);border:1.5px solid rgba(13,27,42,.1)}
+.btn-s:hover{background:var(--cream)}
+.btn:disabled{opacity:.4;cursor:default;transform:none!important}
+
+/* ── INFO ROW ── */
+.irow{display:flex;align-items:flex-start;gap:13px;padding:13px 15px;
+  background:var(--paper);border-radius:var(--r);margin-bottom:9px;
+  border-left:3px solid var(--teal)}
+.irow .ico{font-size:1.5rem;flex-shrink:0;margin-top:1px}
+.irow .it{font-weight:700;font-size:.9rem;color:var(--ink)}
+.irow .id{font-size:.82rem;color:#555;line-height:1.6;margin-top:3px}
+
+/* ── RESULT STRIP ── */
+.rs{margin-top:13px;padding:13px 16px;border-radius:var(--r);
+  font-size:.88rem;font-weight:600;display:none;align-items:center;gap:8px}
+.rs.show{display:flex}
+.rs.ok{background:#e6f4ec;color:var(--ok)}
+.rs.no{background:#faeae8;color:var(--no)}
+
+/* ══════════════════════════════════════
+   차시 1 — 위치 탐험
+══════════════════════════════════════ */
+.coord-box{background:linear-gradient(135deg,var(--navy),var(--ocean));
+  border-radius:var(--rl);padding:22px;text-align:center;margin-bottom:13px;color:var(--white)}
+.coord-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:12px}
+.cval{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);
+  border-radius:10px;padding:12px 22px}
+.clb{font-size:.66rem;color:var(--mist);letter-spacing:2px;text-transform:uppercase}
+.cvv{font-family:'Black Han Sans',sans-serif;font-size:1.35rem;color:var(--gold);margin-top:3px}
+
+/* 거리 비교 시각화 */
+.dist-visual{background:var(--paper);border-radius:var(--r);padding:18px;margin-bottom:13px}
+.dist-bar-wrap{margin:10px 0}
+.dist-label{display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;margin-bottom:4px}
+.dist-track{background:rgba(13,27,42,.08);border-radius:6px;height:12px;overflow:hidden;position:relative}
+.dist-fill{height:100%;border-radius:6px;transition:width 1s ease}
+.dist-fill.kr{background:linear-gradient(90deg,var(--ok),#5ca877)}
+.dist-fill.jp{background:linear-gradient(90deg,var(--coral),#e8855c)}
+
+/* 위치 퀴즈 */
+.fq{background:var(--white);border-radius:var(--r);padding:15px 17px;margin-bottom:9px;
+  border:1.5px solid rgba(13,27,42,.06)}
+.fq p{font-size:.9rem;font-weight:600;color:var(--ink);margin-bottom:9px}
+.fopts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.fo{background:var(--paper);border:1.5px solid rgba(13,27,42,.1);border-radius:9px;
+  padding:10px 12px;font-family:'Noto Sans KR',sans-serif;font-size:.84rem;font-weight:600;
+  color:var(--ink);cursor:pointer;transition:all .15s}
+.fo:hover{border-color:var(--ocean);background:#eef3fa}
+.fo.ok{background:#e6f4ec;border-color:var(--ok);color:var(--ok)}
+.fo.no{background:#faeae8;border-color:var(--no);color:var(--no)}
+.fo:disabled{cursor:default}
+
+/* ══════════════════════════════════════
+   차시 2 — 지리·자연 (말판 놀이)
+══════════════════════════════════════ */
+.board-wrap{overflow-x:auto;padding-bottom:4px}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;min-width:320px}
+.cell{background:var(--paper);border-radius:10px;padding:10px 6px;text-align:center;
+  cursor:pointer;transition:all .22s;border:2px solid transparent;position:relative;
+  min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cell:hover:not(.start):not(.finish):not(.special){border-color:var(--ocean);background:#eef3fa}
+.cell.active{border-color:var(--coral);box-shadow:0 0 0 3px rgba(232,96,60,.2)}
+.cell .ce{font-size:1.4rem;line-height:1;margin-bottom:3px}
+.cell .cn{font-size:.72rem;font-weight:700;color:var(--ink);line-height:1.3}
+.cell.start{background:linear-gradient(135deg,var(--ok),#5ca877);border:none}
+.cell.start .cn{color:white}
+.cell.finish{background:linear-gradient(135deg,var(--coral),#c94d2a);border:none}
+.cell.finish .cn{color:white}
+.cell.special{background:linear-gradient(135deg,var(--gold),#e0a840);border:none}
+.cell.special .cn{color:white}
+.cell .pawn{position:absolute;top:-10px;right:-6px;font-size:1.1rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.board-info{display:flex;gap:10px;margin-top:10px}
+.bi{flex:1;background:var(--paper);border-radius:10px;padding:12px;text-align:center;font-size:.8rem}
+.bi .biv{font-family:'Black Han Sans',sans-serif;font-size:1.3rem;color:var(--coral)}
+.bi .bil{font-size:.72rem;color:#666;margin-top:2px}
+.dice-btn{background:linear-gradient(135deg,var(--ocean),var(--teal));color:white;border:none;
+  border-radius:var(--r);padding:14px;font-family:'Black Han Sans',sans-serif;font-size:1.1rem;
+  cursor:pointer;transition:all .2s;width:100%;margin-top:10px;
+  box-shadow:0 4px 16px rgba(30,73,118,.3)}
+.dice-btn:hover{transform:translateY(-2px)}
+.dice-btn:disabled{opacity:.4;cursor:default;transform:none}
+.cell-modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(13,27,42,.7);
+  align-items:flex-end;justify-content:center}
+.cell-modal.open{display:flex}
+.cell-modal-inner{background:var(--white);border-radius:var(--rl) var(--rl) 0 0;
+  padding:28px 22px;width:100%;max-width:500px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.cm-emoji{font-size:3rem;text-align:center;display:block;margin-bottom:10px}
+.cm-name{font-family:'Black Han Sans',sans-serif;font-size:1.3rem;color:var(--ink);text-align:center;margin-bottom:8px}
+.cm-desc{font-size:.9rem;color:#444;line-height:1.75;margin-bottom:16px}
+.cm-q{background:var(--paper);border-radius:var(--r);padding:14px;font-size:.9rem;font-weight:700;color:var(--ink);margin-bottom:10px}
+.cm-opts{display:grid;gap:7px}
+.cm-opt{background:var(--paper);border:1.5px solid rgba(13,27,42,.1);border-radius:9px;
+  padding:11px 14px;font-family:'Noto Sans KR',sans-serif;font-size:.88rem;font-weight:600;
+  color:var(--ink);cursor:pointer;transition:all .15s;text-align:left}
+.cm-opt:hover{border-color:var(--ocean);background:#eef3fa}
+.cm-opt.ok{background:#e6f4ec;border-color:var(--ok);color:var(--ok)}
+.cm-opt.no{background:#faeae8;border-color:var(--no);color:var(--no)}
+.cm-opt:disabled{cursor:default}
+
+/* ══════════════════════════════════════
+   차시 3 — 역사 자료 박물관
+══════════════════════════════════════ */
+.museum-grid{display:grid;gap:11px}
+.exhibit{background:var(--white);border-radius:var(--rl);overflow:hidden;
+  box-shadow:var(--sh);cursor:pointer;transition:all .22s;border:1.5px solid transparent}
+.exhibit:hover{transform:translateY(-2px);border-color:var(--gold)}
+.exhibit.open{border-color:var(--coral)}
+.ex-header{background:linear-gradient(135deg,var(--navy),var(--ocean));
+  padding:18px 18px 14px;display:flex;align-items:center;gap:13px}
+.ex-num{font-family:'Black Han Sans',sans-serif;font-size:2rem;color:rgba(255,255,255,.15);
+  line-height:1;flex-shrink:0}
+.ex-year{font-size:.68rem;font-weight:800;letter-spacing:2px;color:var(--coral);text-transform:uppercase}
+.ex-title{font-family:'Black Han Sans',sans-serif;font-size:1rem;color:var(--gold);margin-top:3px}
+.ex-icon{margin-left:auto;font-size:1.8rem;flex-shrink:0}
+.ex-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.exhibit.open .ex-body{max-height:400px}
+.ex-content{padding:16px 18px}
+.ex-desc{font-size:.88rem;color:#444;line-height:1.75;margin-bottom:12px}
+.ex-point{background:var(--paper);border-radius:9px;padding:12px;
+  border-left:3px solid var(--gold);font-size:.84rem;color:var(--ink);line-height:1.65}
+.ex-point strong{color:var(--ocean)}
+
+/* 역사 퀴즈 */
+.hist-q{background:var(--paper);border-radius:var(--r);padding:16px;margin-bottom:9px}
+.hist-q .hq-text{font-weight:700;font-size:.9rem;margin-bottom:10px}
+.hist-q .hq-opts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.hopt{background:var(--white);border:1.5px solid rgba(13,27,42,.1);border-radius:9px;
+  padding:10px 12px;font-family:'Noto Sans KR',sans-serif;font-size:.84rem;font-weight:600;
+  color:var(--ink);cursor:pointer;transition:all .15s}
+.hopt:hover{border-color:var(--ocean);background:#eef3fa}
+.hopt.ok{background:#e6f4ec;border-color:var(--ok);color:var(--ok)}
+.hopt.no{background:#faeae8;border-color:var(--no);color:var(--no)}
+.hopt:disabled{cursor:default}
+
+/* ══════════════════════════════════════
+   차시 4 — 독도 지킴이 + 글쓰기
+══════════════════════════════════════ */
+.hero-card{background:linear-gradient(135deg,var(--navy),var(--ocean));
+  border-radius:var(--rl);padding:20px;margin-bottom:10px;
+  display:flex;align-items:center;gap:15px;cursor:pointer;
+  transition:all .22s;border:1.5px solid transparent;color:var(--white)}
+.hero-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.hero-card.open{border-color:var(--coral)}
+.hc-icon{font-size:2.8rem;flex-shrink:0}
+.hc-year{font-size:.68rem;color:var(--coral);font-weight:800;letter-spacing:2px;text-transform:uppercase}
+.hc-name{font-family:'Black Han Sans',sans-serif;font-size:1.05rem;color:var(--gold);margin-top:2px}
+.hc-role{font-size:.8rem;color:var(--mist);margin-top:3px}
+.hc-detail{max-height:0;overflow:hidden;transition:max-height .35s ease;font-size:.85rem;color:var(--mist);line-height:1.7;margin-top:0}
+.hero-card.open .hc-detail{max-height:200px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1)}
+
+/* 엽서 */
+.postcard{background:linear-gradient(135deg,#fdfcf9,#f5f0e8);
+  border:2px solid rgba(201,151,58,.3);border-radius:var(--rl);padding:22px;
+  box-shadow:var(--shd),4px 4px 0 rgba(201,151,58,.18);position:relative;overflow:hidden}
+.postcard::before{content:'';position:absolute;top:0;right:0;
+  width:56px;height:72px;
+  background:linear-gradient(135deg,rgba(201,151,58,.12),rgba(232,96,60,.08));
+  border-left:1px dashed rgba(201,151,58,.4);border-bottom:1px dashed rgba(201,151,58,.4)}
+.pc-stamp{position:absolute;top:8px;right:9px;width:42px;height:52px;
+  background:linear-gradient(135deg,var(--ocean),var(--teal));border-radius:4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.2rem;
+  border:2px solid rgba(255,255,255,.3)}
+.pc-stamp span{font-size:.42rem;color:var(--mist);letter-spacing:.5px;margin-top:2px;font-weight:800;text-transform:uppercase}
+.pc-title{font-family:'Black Han Sans',sans-serif;font-size:.95rem;color:var(--gold);margin-bottom:2px}
+.pc-from{font-size:.7rem;color:#999;margin-bottom:12px;letter-spacing:1px}
+.pc-ta{width:100%;border:none;outline:none;resize:none;background:transparent;
+  padding:10px 0;font-family:'Noto Sans KR',sans-serif;font-size:.9rem;line-height:2;
+  color:var(--ink);min-height:110px;border-bottom:1px dashed rgba(13,27,42,.12)}
+.pc-bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px}
+.pc-chars{font-size:.75rem;color:#aaa}
+.pc-to{text-align:right;font-size:.75rem;color:#999}
+.pc-to strong{display:block;font-size:.88rem;color:var(--ink);margin-top:2px}
+
+/* AI 피드백 */
+.ai-box{background:linear-gradient(135deg,#f5f0e8,#ede8db);border-radius:var(--r);
+  padding:16px 18px;margin-top:12px;border-left:3px solid var(--teal);
+  font-size:.88rem;line-height:1.8;color:var(--ink);display:none}
+.ai-box.show{display:block}
+.ai-head{font-family:'Black Han Sans',sans-serif;font-size:.88rem;color:var(--teal);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+
+/* ══════════════════════════════════════
+   일반 QUIZ
+══════════════════════════════════════ */
+.qmeta{display:flex;align-items:center;justify-content:space-between;
+  background:var(--navy);border-radius:var(--r);padding:15px 18px;margin-bottom:13px;color:var(--white)}
+.qscore-v{font-family:'Black Han Sans',sans-serif;font-size:1.7rem;color:var(--gold);line-height:1}
+.qscore-l{font-size:.7rem;color:var(--mist);margin-top:2px}
+.qprog{flex:1;margin-left:18px}
+.qpb{background:rgba(255,255,255,.15);border-radius:4px;height:6px;overflow:hidden;margin-top:7px}
+.qpf{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--coral),var(--gold));transition:width .4s}
+.qcard{background:var(--white);border-radius:var(--rl);padding:26px 20px;box-shadow:var(--shd);text-align:center}
+.qnum{font-size:.7rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.qemoji{font-size:2.8rem;display:block;margin-bottom:14px}
+.qtext{font-family:'Black Han Sans',sans-serif;font-size:1.1rem;line-height:1.5;
+  color:var(--ink);margin-bottom:20px;min-height:50px}
+.qopts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.qopt{background:var(--paper);border:2px solid rgba(13,27,42,.08);border-radius:var(--r);
+  padding:13px 10px;font-family:'Noto Sans KR',sans-serif;font-size:.87rem;font-weight:600;
+  color:var(--ink);cursor:pointer;transition:all .18s;line-height:1.4}
+.qopt:hover{border-color:var(--ocean);background:#e8f0fa;transform:translateY(-1px)}
+.qopt.ok{background:#e6f4ec;border-color:var(--ok);color:var(--ok)}
+.qopt.no{background:#faeae8;border-color:var(--no);color:var(--no)}
+.qopt:disabled{cursor:default;transform:none}
+.final{text-align:center;padding:32px 16px;display:none}
+.final.show{display:block}
+.final-e{font-size:4.5rem;display:block;margin-bottom:14px}
+.final-t{font-family:'Black Han Sans',sans-serif;font-size:1.8rem;color:var(--ink)}
+.final-p{font-family:'Black Han Sans',sans-serif;font-size:3rem;color:var(--coral);margin:6px 0}
+.final-s{font-size:.88rem;color:#666;line-height:1.7;margin-top:6px}
+
+/* ══════════════════════════════════════
+   낱말 찾기
+══════════════════════════════════════ */
+.wgrid{display:grid;gap:5px;width:fit-content;margin:0 auto}
+.wrow{display:flex;gap:5px}
+.wc{width:39px;height:39px;background:var(--paper);border:1.5px solid rgba(13,27,42,.1);
+  border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-family:'Black Han Sans',sans-serif;font-size:1rem;color:var(--ink);
+  cursor:pointer;user-select:none;transition:all .14s}
+.wc:hover{background:#e8f0fa;border-color:var(--ocean)}
+.wc.sel{background:rgba(201,151,58,.2);border-color:var(--gold)}
+.wc.found{background:#e6f4ec;border-color:var(--ok);color:var(--ok)}
+.wc.shake{animation:shk .3s;background:#faeae8;border-color:var(--no)}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.wchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.wchip{background:var(--paper);border:1.5px solid rgba(13,27,42,.1);border-radius:20px;
+  padding:5px 13px;font-size:.83rem;font-weight:700;color:var(--ink);transition:all .2s}
+.wchip.found{background:#e6f4ec;border-color:var(--ok);color:var(--ok);text-decoration:line-through}
+
+/* ══════════════════════════════════════
+   도장 페이지
+══════════════════════════════════════ */
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.stamp{background:var(--paper);border:2px dashed rgba(13,27,42,.12);
+  border-radius:var(--r);padding:16px 6px;text-align:center;transition:all .3s}
+.stamp.earned{background:linear-gradient(135deg,#fff8ec,#fdf2e0);
+  border-style:solid;border-color:var(--gold);box-shadow:0 4px 14px rgba(201,151,58,.2)}
+.si{font-size:2rem;display:block;opacity:.22;margin-bottom:5px;filter:grayscale(1)}
+.stamp.earned .si{opacity:1;filter:none}
+.sl{font-size:.68rem;font-weight:700;color:#bbb;line-height:1.3}
+.stamp.earned .sl{color:var(--ink)}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(8px);
+  background:var(--navy);color:var(--gold);padding:11px 20px;border-radius:30px;
+  font-size:.86rem;font-weight:700;z-index:9999;box-shadow:var(--shd);
+  white-space:nowrap;opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;border:1px solid rgba(201,151,58,.3)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.dots{display:inline-flex;gap:4px;align-items:center}
+.dots span{width:7px;height:7px;background:currentColor;border-radius:50%;
+  animation:db .8s infinite alternate}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes db{to{transform:translateY(-5px);opacity:.4}}
+
+/* 역할 선택 */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.role-btn{background:var(--paper);border:1.5px solid rgba(13,27,42,.08);
+  border-radius:var(--r);padding:13px 10px;display:flex;flex-direction:column;
+  align-items:center;gap:5px;cursor:pointer;transition:all .2s;text-align:center}
+.role-btn:hover{border-color:var(--ocean);background:#eef3fa}
+.role-btn.on{border-color:var(--coral);background:#fdf2ef}
+.role-btn .ri{font-size:1.8rem}
+.role-btn .rn{font-weight:700;font-size:.85rem;color:var(--ink)}
+.role-btn .rh{font-size:.72rem;color:#777;margin-top:2px;line-height:1.3}
+
+@media(max-width:400px){
+  .qopts{grid-template-columns:1fr}
+  .fopts{grid-template-columns:1fr}
+  .hq-opts{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="bg"><div class="wave"></div><div class="wave"></div><div class="wave"></div></div>
+
+<div id="app">
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">🏝️</div>
+    <div>
+      <div class="logo-name">독도탐험대</div>
+      <div class="logo-sub">5학년 1학기 사회</div>
+    </div>
+  </div>
+  <div class="hbadge" id="hbadge">🎖 0 / 5</div>
+</header>
+
+<!-- ── NAV ── -->
+<nav>
+  <button class="nb on" onclick="go('home',this)"><span class="ni">🏠</span>홈</button>
+  <button class="nb" onclick="go('ch1',this)"><span class="step">하나</span><span class="ni">🗺️</span>위치</button>
+  <button class="nb" onclick="go('ch2',this)"><span class="step">둘</span><span class="ni">🎲</span>자연</button>
+  <button class="nb" onclick="go('ch3',this)"><span class="step">셋</span><span class="ni">📜</span>역사</button>
+  <button class="nb" onclick="go('ch4',this)"><span class="step">넷</span><span class="ni">🛡️</span>수호</button>
+  <button class="nb" onclick="go('quiz',this)"><span class="ni">❓</span>퀴즈</button>
+  <button class="nb" onclick="go('word',this)"><span class="ni">🔤</span>낱말</button>
+  <button class="nb" onclick="go('stamp',this)"><span class="ni">🏆</span>도장</button>
+</nav>
+
+<main>
+
+<!-- ════════ 홈 ════════ -->
+<section class="sec on" id="home">
+  <div class="hero">
+    <div class="hero-tag">DOKDO EXPEDITION 2025</div>
+    <h1>우리 땅<br><em>독도</em>를 탐험하라</h1>
+    <p>천재교과서 5학년 1학기 사회<br>4개 차시를 게임처럼 완주해보세요!</p>
+    <div class="hero-deco">🏝️</div>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="clabel">전체 탐험 진도</div>
+    <div class="prog-bar"><div class="prog-fill" id="mainProg" style="width:0%"></div></div>
+    <div class="prog-meta"><span id="mainProgTxt">시작해볼까요?</span><strong id="mainProgCnt">0 / 5</strong></div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">차시별 활동 안내</div>
+    <div style="display:grid;gap:8px">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--paper);border-radius:var(--r);cursor:pointer" onclick="go('ch1',document.querySelectorAll('.nb')[1])">
+        <span style="background:var(--coral);color:white;font-size:.68rem;font-weight:800;padding:4px 9px;border-radius:20px;flex-shrink:0">하나</span>
+        <div><div style="font-weight:700;font-size:.92rem">독도는 어디에 있을까요?</div><div style="font-size:.78rem;color:#777;margin-top:2px">위치·거리 탐험 + 빈칸 퀴즈</div></div>
+        <span style="margin-left:auto;color:var(--mist);font-size:.9rem">→</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--paper);border-radius:var(--r);cursor:pointer" onclick="go('ch2',document.querySelectorAll('.nb')[2])">
+        <span style="background:var(--teal);color:white;font-size:.68rem;font-weight:800;padding:4px 9px;border-radius:20px;flex-shrink:0">둘</span>
+        <div><div style="font-weight:700;font-size:.92rem">독도의 지리적 특성</div><div style="font-size:.78rem;color:#777;margin-top:2px">🎲 동식물 말판 놀이</div></div>
+        <span style="margin-left:auto;color:var(--mist);font-size:.9rem">→</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--paper);border-radius:var(--r);cursor:pointer" onclick="go('ch3',document.querySelectorAll('.nb')[3])">
+        <span style="background:var(--gold);color:white;font-size:.68rem;font-weight:800;padding:4px 9px;border-radius:20px;flex-shrink:0">셋</span>
+        <div><div style="font-weight:700;font-size:.92rem">옛 자료 속 독도</div><div style="font-size:.78rem;color:#777;margin-top:2px">🏛️ 역사 박물관 + 자료 퀴즈</div></div>
+        <span style="margin-left:auto;color:var(--mist);font-size:.9rem">→</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--paper);border-radius:var(--r);cursor:pointer" onclick="go('ch4',document.querySelectorAll('.nb')[4])">
+        <span style="background:var(--navy);color:white;font-size:.68rem;font-weight:800;padding:4px 9px;border-radius:20px;flex-shrink:0">넷</span>
+        <div><div style="font-weight:700;font-size:.92rem">독도를 지켜온 사람들</div><div style="font-size:.78rem;color:#777;margin-top:2px">💌 지킴이 엽서 쓰기 + AI 피드백</div></div>
+        <span style="margin-left:auto;color:var(--mist);font-size:.9rem">→</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 차시1: 위치 ════════ -->
+<section class="sec" id="ch1">
+  <div class="step-badge">🗺️ 하나 — 독도는 어디에 있을까요?</div>
+
+  <div class="coord-box">
+    <div style="font-size:.68rem;letter-spacing:2px;color:var(--mist);text-transform:uppercase">독도의 위치</div>
+    <div style="font-family:'Black Han Sans',sans-serif;font-size:1rem;color:var(--white);margin:6px 0">동해 한가운데 · 대한민국 가장 동쪽 끝</div>
+    <div class="coord-row">
+      <div class="cval"><div class="clb">북위</div><div class="cvv">37° 14′</div></div>
+      <div class="cval"><div class="clb">동경</div><div class="cvv">131° 52′</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">거리 비교</div>
+    <div class="dist-visual">
+      <div style="font-size:.78rem;font-weight:700;color:#666;margin-bottom:12px">독도에서 얼마나 멀까요?</div>
+      <div class="dist-bar-wrap">
+        <div class="dist-label"><span>🇰🇷 울릉도</span><span style="color:var(--ok);font-weight:800">87.4km</span></div>
+        <div class="dist-track"><div class="dist-fill kr" style="width:56%"></div></div>
+      </div>
+      <div class="dist-bar-wrap" style="margin-top:10px">
+        <div class="dist-label"><span>🇰🇷 주변(포항)</span><span style="color:var(--ok)">216.8km</span></div>
+        <div class="dist-track"><div class="dist-fill kr" style="width:75%;opacity:.6"></div></div>
+      </div>
+      <div class="dist-bar-wrap" style="margin-top:10px">
+        <div class="dist-label"><span>🗾 일본 오키섬</span><span style="color:var(--coral);font-weight:800">157.5km</span></div>
+        <div class="dist-track"><div class="dist-fill jp" style="width:100%"></div></div>
+      </div>
+      <div style="background:#e6f4ec;border-radius:9px;padding:10px 13px;margin-top:12px;font-size:.84rem;color:var(--ok);font-weight:700">
+        ✅ 독도는 일본보다 우리나라에 약 2배 가까워요!
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">독도 구조</div>
+    <div class="irow"><div class="ico">🏔️</div><div><div class="it">동도 (해발 98.6m)</div><div class="id">경비대 건물·등대·선착장 등 시설이 있어요. 큰 배가 정박할 수 있어요.</div></div></div>
+    <div class="irow" style="border-left-color:var(--gold)"><div class="ico">⛰️</div><div><div class="it">서도 (해발 168.5m)</div><div class="id">주민 숙소가 있어요. 독도에서 가장 높은 봉우리예요.</div></div></div>
+    <div class="irow" style="border-left-color:var(--coral)"><div class="ico">📍</div><div><div class="it">행정구역</div><div class="id">경상북도 울릉군 울릉읍 독도리 — 날씨가 맑으면 울릉도에서 맨눈으로 보여요!</div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">📝 위치 빈칸 퀴즈</div>
+    <div id="ch1Quiz"></div>
+    <button class="btn btn-p" onclick="checkCh1()">정답 확인하기 ✓</button>
+    <div class="rs" id="ch1Rs"></div>
+  </div>
+</section>
+
+<!-- ════════ 차시2: 자연 말판 ════════ -->
+<section class="sec" id="ch2">
+  <div class="step-badge">🎲 둘 — 독도 동식물 말판 놀이</div>
+
+  <div class="card" style="background:linear-gradient(135deg,var(--navy),var(--ocean));border:none;color:var(--white)">
+    <div class="clabel" style="color:var(--mist)">활동 방법</div>
+    <div style="font-family:'Black Han Sans',sans-serif;font-size:1rem;color:var(--gold);margin-bottom:8px">🎲 주사위를 던져 말을 이동시켜요!</div>
+    <div style="font-size:.83rem;color:var(--mist);line-height:1.8">
+      ① 주사위 버튼을 눌러 칸을 이동해요<br>
+      ② 도착한 칸의 동식물 카드가 펼쳐져요<br>
+      ③ 짝에게 내용을 설명하면 점수 획득!<br>
+      ④ 먼저 도착 칸에 도달하면 이겨요!
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="clabel" style="margin:0">말판</div>
+      <div style="font-size:.8rem;color:#666">🎖 점수: <strong id="boardScore">0</strong>점</div>
+    </div>
+    <div class="board-wrap"><div class="board" id="gameBoard"></div></div>
+    <div class="board-info">
+      <div class="bi"><div class="biv" id="diceResult">?</div><div class="bil">주사위</div></div>
+      <div class="bi"><div class="biv" id="curPos">출발</div><div class="bil">현재 위치</div></div>
+      <div class="bi"><div class="biv" id="boardScoreBig">0</div><div class="bil">점수</div></div>
+    </div>
+    <button class="dice-btn" id="diceBtn" onclick="rollDice()">🎲 주사위 던지기!</button>
+  </div>
+</section>
+
+<!-- ════════ 차시3: 역사 박물관 ════════ -->
+<section class="sec" id="ch3">
+  <div class="step-badge">📜 셋 — 옛 자료 속 독도 박물관</div>
+
+  <div class="card" style="background:linear-gradient(135deg,var(--navy),var(--ocean));border:none;color:var(--white)">
+    <div class="clabel" style="color:var(--mist)">박물관 입장</div>
+    <div style="font-family:'Black Han Sans',sans-serif;font-size:1rem;color:var(--gold);margin-bottom:6px">우리나라의 옛 기록 & 지도</div>
+    <p style="font-size:.84rem;color:var(--mist);line-height:1.7">전시물을 탭해서 자세히 살펴보세요. 우리나라는 오래전부터 울릉도와 독도를 우리 영토로 기록해왔어요!</p>
+  </div>
+
+  <div class="museum-grid" id="museumGrid"></div>
+
+  <div class="card">
+    <div class="clabel">🏛️ 역사 자료 퀴즈</div>
+    <div id="histQuiz"></div>
+    <button class="btn btn-p" onclick="checkHistQuiz()">정답 확인하기 ✓</button>
+    <div class="rs" id="histRs"></div>
+  </div>
+</section>
+
+<!-- ════════ 차시4: 수호 + 엽서 ════════ -->
+<section class="sec" id="ch4">
+  <div class="step-badge">🛡️ 넷 — 독도를 지켜온 사람들</div>
+
+  <div class="card">
+    <div class="clabel">독도 지킴이 — 탭해서 이야기 보기</div>
+    <div id="heroCards"></div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">현재 독도를 지키는 방법</div>
+    <div class="irow"><div class="ico">🪖</div><div><div class="it">독도경비대</div><div class="id">경찰로 구성된 독도 경비대가 동도 숙소에서 생활하며 24시간 독도를 지켜요.</div></div></div>
+    <div class="irow" style="border-left-color:var(--gold)"><div class="ico">✈️</div><div><div class="it">해군·공군 훈련</div><div class="id">정기적으로 해양경찰·해군·공군이 함께 동해 영토 수호 훈련을 해요.</div></div></div>
+    <div class="irow" style="border-left-color:var(--coral)"><div class="ico">🏠</div><div><div class="it">주민 거주</div><div class="id">독도에 주민이 실제로 살며 생활해요. 최종덕 씨가 최초로 독도 주민 등록을 했어요.</div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">💌 독도 지킴이에게 엽서 쓰기</div>
+    <div style="font-size:.85rem;color:#555;margin-bottom:12px;line-height:1.7">독도를 지켜온 분들 중 한 명을 선택하고, 감사와 응원의 엽서를 써보세요!</div>
+    <div class="role-grid" id="roleGrid">
+      <button class="role-btn" onclick="setRole(this,'이사부 장군','신라시대 용감한 장군')"><span class="ri">⚔️</span><div class="rn">이사부 장군</div><div class="rh">신라시대 용감한 장군</div></button>
+      <button class="role-btn" onclick="setRole(this,'안용복','두 번이나 일본에 건너간 어부')"><span class="ri">🚣</span><div class="rn">안용복</div><div class="rh">일본에 맞선 어부</div></button>
+      <button class="role-btn" onclick="setRole(this,'독도경비대원','오늘도 독도를 지키는 경비대')"><span class="ri">🪖</span><div class="rn">독도경비대원</div><div class="rh">오늘도 지키는 분</div></button>
+      <button class="role-btn" onclick="setRole(this,'독도 주민','독도에 실제로 사는 주민')"><span class="ri">🏠</span><div class="rn">독도 주민</div><div class="rh">독도에 사는 분</div></button>
+    </div>
+    <div class="postcard" id="postcardWrap">
+      <div class="pc-stamp">🏝️<span>DOKDO</span></div>
+      <div class="pc-title" id="pcTitle">받는 분을 선택해주세요</div>
+      <div class="pc-from">독도리 우체국 · 경상북도 울릉군</div>
+      <div style="border-top:1px solid rgba(13,27,42,.08)">
+        <textarea class="pc-ta" id="pcText" placeholder="엽서 내용을 써보세요..." oninput="pcCount()"></textarea>
+      </div>
+      <div class="pc-bottom">
+        <span class="pc-chars" id="pcChars">0자</span>
+        <div class="pc-to">받는 사람<strong id="pcTo">—</strong></div>
+      </div>
+    </div>
+    <button class="btn btn-p" id="pcBtn" onclick="getPcFeedback()" disabled>🤖 AI 선생님 피드백 받기</button>
+    <div class="ai-box" id="pcAi"><div class="ai-head">✦ AI 선생님의 피드백</div><div id="pcAiTxt"></div></div>
+  </div>
+</section>
+
+<!-- ════════ 종합 퀴즈 ════════ -->
+<section class="sec" id="quiz">
+  <div class="step-badge">❓ 독도 왕 퀴즈 대결!</div>
+  <div class="qmeta">
+    <div><div class="qscore-v" id="qs">0</div><div class="qscore-l">점수</div></div>
+    <div class="qprog">
+      <div style="display:flex;justify-content:space-between;font-size:.73rem;color:var(--mist)"><span>진행도</span><span id="qctr">0 / 10</span></div>
+      <div class="qpb"><div class="qpf" id="qpf" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="qcard" id="qcard">
+    <div class="qnum" id="qnum">문제 1 / 10</div>
+    <span class="qemoji" id="qemoji">🏝️</span>
+    <div class="qtext" id="qtext">로딩 중...</div>
+    <div class="qopts" id="qopts"></div>
+    <div class="rs" id="qrs"></div>
+    <button class="btn btn-o" id="qnext" style="display:none" onclick="nextQ()">다음 문제 →</button>
+  </div>
+  <div class="final" id="qfinal">
+    <span class="final-e" id="fe">🏆</span>
+    <div class="final-t" id="ft">독도 탐험왕!</div>
+    <div class="final-p" id="fp">0점</div>
+    <div class="final-s" id="fs"></div>
+    <button class="btn btn-p" onclick="startQuiz()" style="max-width:200px;margin:18px auto 0">🔄 다시 도전</button>
+  </div>
+</section>
+
+<!-- ════════ 낱말 찾기 ════════ -->
+<section class="sec" id="word">
+  <div class="step-badge">🔤 독도 낱말 찾기</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="clabel" style="margin:0">찾은 낱말 <span id="wfound">0</span> / <span id="wtotal">10</span></div>
+      <button class="btn btn-s" style="width:auto;margin:0;padding:7px 13px;font-size:.78rem" onclick="buildWord()">🔄 새 게임</button>
+    </div>
+    <div style="overflow-x:auto;padding-bottom:4px"><div class="wgrid" id="wgrid"></div></div>
+    <div class="wchips" id="wchips"></div>
+    <div id="wmsg" style="text-align:center;margin-top:12px;font-family:'Black Han Sans',sans-serif;font-size:1rem;color:var(--teal);display:none"></div>
+  </div>
+</section>
+
+<!-- ════════ 도장 ════════ -->
+<section class="sec" id="stamp">
+  <div class="step-badge">🏆 나의 탐험 도장</div>
+  <div class="prog-wrap">
+    <div class="clabel">탐험 완료도</div>
+    <div class="prog-bar"><div class="prog-fill" id="sProg" style="width:0%"></div></div>
+    <div class="prog-meta"><span id="sProgTxt">시작해보세요!</span><strong id="sProgCnt">0 / 5</strong></div>
+  </div>
+  <div class="card"><div class="sgrid" id="sgrid"></div></div>
+  <div class="card" id="sumCard">
+    <div class="clabel">학습 요약</div>
+    <div id="sumContent" style="text-align:center;padding:16px;color:#aaa;font-size:.88rem">활동을 완료하면 결과가 나타나요!</div>
+  </div>
+</section>
+
+</main>
+</div>
+<div class="toast" id="toastEl"></div>
+
+<!-- ═══════ CELL MODAL ═══════ -->
+<div class="cell-modal" id="cellModal">
+  <div class="cell-modal-inner">
+    <button onclick="closeModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#aaa">✕</button>
+    <span class="cm-emoji" id="cmEmoji"></span>
+    <div class="cm-name" id="cmName"></div>
+    <div class="cm-desc" id="cmDesc"></div>
+    <div class="cm-q" id="cmQ" style="display:none"></div>
+    <div class="cm-opts" id="cmOpts"></div>
+    <div class="rs" id="cmRs"></div>
+    <button class="btn btn-o" id="cmClose" onclick="closeModal()" style="margin-top:10px">확인했어요! ✓</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
+const S={
+  stamps:{ch1:false,ch2:false,ch3:false,ch4:false,quiz:false,word:false},
+  qScore:0,qIdx:0,qAnswered:false,
+  boardPos:0, boardScore:0, boardMax:15, boardDone:false,
+  ch1Ans:{}, histAns:{},
+  histOpened:0,
+  heroOpened:0,
+  pcRole:'',
+};
+
+/* ═══════════════════════════════════════
+   NAV
+═══════════════════════════════════════ */
+function go(id,btn){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  if(btn)btn.classList.add('on');
+  updateProg();
+  if(id==='stamp')renderStamps();
+}
+
+/* ═══════════════════════════════════════
+   차시1 — 위치 퀴즈
+═══════════════════════════════════════ */
+const CH1Q=[
+  {q:'독도에서 가장 가까운 우리나라 섬은?',ans:'울릉도',opts:['제주도','울릉도','거제도','강화도']},
+  {q:'독도의 행정구역은 경상북도 울릉군 울릉읍 ___리',ans:'독도',opts:['울릉','죽변','독도','석도']},
+  {q:'독도는 동도와 ___로 이루어져 있어요.',ans:'서도',opts:['남도','서도','북도','중도']},
+];
+function buildCh1(){
+  const c=document.getElementById('ch1Quiz'); c.innerHTML='';
+  CH1Q.forEach((q,i)=>{
+    const d=document.createElement('div'); d.className='fq';
+    d.innerHTML=`<p>${i+1}. ${q.q}</p><div class="fopts">${q.opts.map(o=>`<button class="fo" onclick="pickCh1(this,'${o}','${q.ans}',${i})">${o}</button>`).join('')}</div>`;
+    c.appendChild(d);
+  });
+}
+function pickCh1(btn,sel,ans,idx){
+  btn.closest('.fopts').querySelectorAll('.fo').forEach(b=>{b.disabled=true;if(b.textContent===ans)b.classList.add('ok')});
+  if(sel!==ans)btn.classList.add('no');
+  S.ch1Ans[idx]=sel===ans;
+}
+function checkCh1(){
+  const cor=Object.values(S.ch1Ans).filter(Boolean).length;
+  const r=document.getElementById('ch1Rs');
+  r.className=cor>=2?'rs show ok':'rs show no';
+  r.innerHTML=cor>=2?`✅ ${CH1Q.length}문제 중 ${cor}개 정답! 위치 탐험 완료!`:`❌ ${CH1Q.length}문제 중 ${cor}개 정답. 다시 확인해봐요!`;
+  if(cor>=2&&!S.stamps.ch1){S.stamps.ch1=true;toast('🗺️ 차시1 위치 탐험 도장 획득!');updateProg();}
+}
+
+/* ═══════════════════════════════════════
+   차시2 — 말판 놀이
+═══════════════════════════════════════ */
+const CELLS=[
+  {type:'start',emoji:'🚢',name:'출발!',desc:'독도를 향해 출발해요!',q:null},
+  {type:'normal',emoji:'🦅',name:'슴새',desc:'독도의 상징 새! 약 2만 마리가 살아요. 천연기념물 제336호예요.',q:{t:'슴새는 독도의 몇 호 천연기념물인가요?',opts:['100호','200호','336호','500호'],ans:2}},
+  {type:'normal',emoji:'🌸',name:'해국',desc:'독도에 피는 보라색 꽃이에요. 바위틈에서 강하게 살아가요.',q:{t:'독도 식물이 키가 작은 이유는?',opts:['흙이 없어서','바람이 강해서','물이 없어서','햇빛이 없어서'],ans:1}},
+  {type:'special',emoji:'🎲+1',name:'주사위\n한 번 더!',desc:'보너스! 주사위를 한 번 더 던져요.',q:null},
+  {type:'normal',emoji:'🐙',name:'문어',desc:'독도 바다에는 문어, 오징어, 전복 등 해양생물이 풍부해요.',q:{t:'독도 주변 바다에 물고기가 많은 이유는?',opts:['수온이 높아서','한류와 난류가 만나서','바다가 얕아서','섬이 커서'],ans:1}},
+  {type:'normal',emoji:'🦞',name:'도화새우',desc:'독도 특산 새우예요. 선명한 붉은색이 특징이에요.',q:{t:'독도의 수산자원은 어떤가요?',opts:['거의 없다','매우 풍부하다','점점 줄고 있다','연구중이다'],ans:1}},
+  {type:'normal',emoji:'🪨',name:'삼형제굴',desc:'세 방향의 동굴이 한 점에서 만나는 독특한 바위예요.',q:{t:'독도는 어떻게 만들어진 섬인가요?',opts:['빙하','화산활동','지진','사람'],ans:1}},
+  {type:'special',emoji:'☀️',name:'한 번 쉬기',desc:'맑은 날 독도 경치를 즐겨요.',q:null},
+  {type:'normal',emoji:'🐟',name:'돌돔',desc:'줄무늬가 아름다운 돌돔도 독도 주변에 살아요.',q:{t:'독도 주변 바다를 무엇이라고 부르나요?',opts:['황금어장','사막','빙하지대','무인도'],ans:0}},
+  {type:'normal',emoji:'🌿',name:'섬기린초',desc:'노란 꽃이 피는 독도 자생식물이에요. 화산섬 환경을 이겨내요.',q:{t:'독도의 토양 특징은?',opts:['비옥하다','가파르고 흙이 부족하다','모래가 많다','넓고 평평하다'],ans:1}},
+  {type:'normal',emoji:'🦅',name:'팽이갈매기',desc:'독도에서 볼 수 있는 갈매기예요. 흰 몸에 검은 머리가 특징이에요.',q:{t:'독도는 어떤 기후인가요?',opts:['사막기후','해양성 기후','대륙성 기후','한대기후'],ans:1}},
+  {type:'special',emoji:'⬅️1',name:'뒤로 한 칸',desc:'파도가 거세요! 한 칸 뒤로 이동해요.',q:null},
+  {type:'normal',emoji:'🧊',name:'메탄하이드레이트',desc:'독도 해저에 있는 미래 에너지 자원이에요. 얼음처럼 생긴 천연가스예요.',q:{t:'독도 해저 자원인 메탄 하이드레이트는?',opts:['식량자원','미래 에너지','수산자원','광물자원'],ans:1}},
+  {type:'normal',emoji:'💡',name:'독도 등대',desc:'1954년에 세워진 독도 등대예요. 독도가 우리 땅임을 알리는 상징이에요.',q:{t:'독도 등대가 세워진 해는?',opts:['1900년','1945년','1954년','1965년'],ans:2}},
+  {type:'normal',emoji:'🇰🇷',name:'태극기',desc:'독도에 우리나라 태극기가 당당히 휘날리고 있어요!',q:{t:'독도는 어느 나라 땅인가요?',opts:['일본','중국','대한민국','공동관리'],ans:2}},
+  {type:'finish',emoji:'🏆',name:'도착!',desc:'독도 탐험 완료! 독도 왕이 되었어요!',q:null},
+];
+
+let pawnPos=0, extraTurn=false;
+
+function buildBoard(){
+  const b=document.getElementById('gameBoard'); b.innerHTML='';
+  CELLS.forEach((cell,i)=>{
+    const d=document.createElement('div');
+    d.className=`cell${cell.type==='start'?' start':cell.type==='finish'?' finish':cell.type==='special'?' special':''}`;
+    d.id=`cell-${i}`;
+    d.innerHTML=`<span class="ce">${cell.emoji}</span><span class="cn">${cell.name}</span>`;
+    b.appendChild(d);
+  });
+  showPawn(0);
+}
+
+function showPawn(pos){
+  document.querySelectorAll('.pawn').forEach(p=>p.remove());
+  const cell=document.getElementById(`cell-${pos}`);
+  if(cell){const p=document.createElement('span');p.className='pawn';p.textContent='🚀';cell.appendChild(p);}
+}
+
+function rollDice(){
+  if(S.boardDone)return;
+  const btn=document.getElementById('diceBtn');
+  btn.disabled=true;
+  let rolls=0; const iv=setInterval(()=>{
+    const r=Math.floor(Math.random()*6)+1;
+    document.getElementById('diceResult').textContent=['⚀','⚁','⚂','⚃','⚄','⚅'][r-1];
+    rolls++;
+    if(rolls>8){
+      clearInterval(iv);
+      const dice=Math.floor(Math.random()*6)+1;
+      document.getElementById('diceResult').textContent=['⚀','⚁','⚂','⚃','⚄','⚅'][dice-1];
+      movePawn(dice,btn);
+    }
+  },80);
+}
+
+function movePawn(steps,btn){
+  let moved=0;
+  const iv=setInterval(()=>{
+    if(moved>=steps||pawnPos>=CELLS.length-1){
+      clearInterval(iv);
+      const cell=CELLS[pawnPos];
+      document.getElementById('curPos').textContent=cell.name;
+      if(cell.type==='special'){
+        if(cell.name.includes('더')){extraTurn=true;toast('🎲 주사위 한 번 더!');}
+        else if(cell.name.includes('쉬기')){toast('☀️ 한 번 쉬어요!');}
+        else if(cell.name.includes('뒤로')){
+          pawnPos=Math.max(0,pawnPos-1);showPawn(pawnPos);
+          document.getElementById('curPos').textContent=CELLS[pawnPos].name;
+          toast('⬅️ 뒤로 한 칸!');
+        }
+        setTimeout(()=>{btn.disabled=extraTurn?false:false;btn.disabled=false;},600);
+      } else if(cell.type==='finish'){
+        toast('🏆 독도 탐험 완료!');
+        if(!S.stamps.ch2){S.stamps.ch2=true;toast('🎲 차시2 자연 탐사 도장 획득!');updateProg();}
+        btn.disabled=true;
+        S.boardDone=true;
+        openCellModal(cell,btn);
+      } else if(cell.q){
+        openCellModal(cell,btn);
+      } else {
+        btn.disabled=false;
+      }
+      return;
+    }
+    pawnPos=Math.min(pawnPos+1,CELLS.length-1);
+    showPawn(pawnPos);
+    moved++;
+  },200);
+}
+
+function openCellModal(cell,btn){
+  document.getElementById('cmEmoji').textContent=cell.emoji;
+  document.getElementById('cmName').textContent=cell.name;
+  document.getElementById('cmDesc').textContent=cell.desc;
+  const qEl=document.getElementById('cmQ'),optsEl=document.getElementById('cmOpts'),rsEl=document.getElementById('cmRs');
+  rsEl.classList.remove('show'); optsEl.innerHTML='';
+  if(cell.q){
+    qEl.style.display='block'; qEl.textContent=cell.q.t;
+    cell.q.opts.forEach((o,i)=>{
+      const b=document.createElement('button'); b.className='cm-opt'; b.textContent=o;
+      b.onclick=()=>{
+        optsEl.querySelectorAll('.cm-opt').forEach(x=>x.disabled=true);
+        if(i===cell.q.ans){b.classList.add('ok');rsEl.innerHTML='🎉 정답! +10점';rsEl.className='rs show ok';S.boardScore+=10;updateBoardScore();}
+        else{b.classList.add('no');optsEl.querySelectorAll('.cm-opt')[cell.q.ans].classList.add('ok');rsEl.innerHTML='❌ 아쉬워요!';rsEl.className='rs show no';}
+      };
+      optsEl.appendChild(b);
+    });
+  } else { qEl.style.display='none'; }
+  document.getElementById('cellModal').classList.add('open');
+  document.getElementById('cmClose').onclick=()=>{closeModal();if(btn&&!S.boardDone)btn.disabled=false;};
+}
+
+function closeModal(){document.getElementById('cellModal').classList.remove('open');}
+function updateBoardScore(){document.getElementById('boardScore').textContent=S.boardScore;document.getElementById('boardScoreBig').textContent=S.boardScore;}
+
+/* ═══════════════════════════════════════
+   차시3 — 역사 박물관
+═══════════════════════════════════════ */
+const EXHIBITS=[
+  {num:'01',year:'1454년',title:'세종실록〈지리지〉',icon:'📖',
+   desc:'세종 때 만든 지리서예요. "우산(독도)과 무릉(울릉도)은 강원도 울진현에 속하며, 서로 거리가 멀지 않아 날씨가 맑으면 볼 수 있다"고 기록되어 있어요.',
+   point:'<strong>핵심 포인트:</strong> 조선이 독도의 존재를 알고 있었고, 우리 땅으로 기록했어요!'},
+  {num:'02',year:'1531년',title:'신증동국여지승람〈팔도총도〉',icon:'🗺️',
+   desc:'조선 지도책이에요. 울릉도와 독도(우산도)가 함께 그려져 있어요. 일부 지도에서 위치가 바뀌어 있는데, 이는 독도를 알고 있었음을 증명해요.',
+   point:'<strong>핵심 포인트:</strong> 조선의 지도에 독도가 명확히 표시되어 있어요!'},
+  {num:'03',year:'1861년',title:'대동여지도〈동국대지도〉',icon:'🏔️',
+   desc:'김정호가 만든 조선 지도예요. 독도를 울릉도 동쪽에 작은 섬으로 정확하게 표시했어요. 지리 정보가 더 정확해졌어요.',
+   point:'<strong>핵심 포인트:</strong> 독도가 우리 영토로 더욱 정확하게 기록되었어요!'},
+  {num:'04',year:'1900년',title:'대한제국 칙령 제41호',icon:'👑',
+   desc:'고종 황제가 직접 서명한 칙령이에요. "울도군의 관할 구역을 울릉 전체, 죽도, 석도로 규정한다"고 적혀 있어요. 여기서 석도가 바로 독도예요!',
+   point:'<strong>핵심 포인트:</strong> 대한제국 황제가 독도를 우리 땅으로 공식 선포! 매년 10월 25일이 독도의 날이에요.'},
+];
+
+const HIST_QUIZ=[
+  {t:'세종실록지리지가 만들어진 시기는?',opts:['고려','조선','대한제국','일제강점기'],ans:1},
+  {t:'대한제국 칙령 제41호에서 석도는 어디인가요?',opts:['제주도','울릉도','독도','강화도'],ans:2},
+  {t:'독도의 날은 몇 월 며칠인가요?',opts:['8월 15일','10월 25일','3월 1일','9월 9일'],ans:1},
+];
+
+function buildMuseum(){
+  const g=document.getElementById('museumGrid');
+  EXHIBITS.forEach((ex,i)=>{
+    const d=document.createElement('div'); d.className='exhibit';
+    d.innerHTML=`<div class="ex-header">
+      <div class="ex-num">${ex.num}</div>
+      <div><div class="ex-year">${ex.year}</div><div class="ex-title">${ex.title}</div></div>
+      <div class="ex-icon">${ex.icon}</div>
+    </div>
+    <div class="ex-body"><div class="ex-content">
+      <div class="ex-desc">${ex.desc}</div>
+      <div class="ex-point">${ex.point}</div>
+    </div></div>`;
+    d.onclick=()=>{
+      d.classList.toggle('open');
+      S.histOpened++;
+      if(S.histOpened>=3&&!S.stamps.ch3){S.stamps.ch3=true;toast('📜 차시3 역사 탐험 도장 획득!');updateProg();}
+    };
+    g.appendChild(d);
+  });
+
+  const hq=document.getElementById('histQuiz');
+  HIST_QUIZ.forEach((q,i)=>{
+    const d=document.createElement('div'); d.className='hist-q';
+    d.innerHTML=`<div class="hq-text">${i+1}. ${q.t}</div>
+      <div class="hq-opts">${q.opts.map((o,j)=>`<button class="hopt" onclick="pickHist(this,'${o}','${q.opts[q.ans]}',${i})">${o}</button>`).join('')}</div>`;
+    hq.appendChild(d);
+  });
+}
+
+function pickHist(btn,sel,ans,idx){
+  btn.closest('.hq-opts').querySelectorAll('.hopt').forEach(b=>{b.disabled=true;if(b.textContent===ans)b.classList.add('ok');});
+  if(sel!==ans)btn.classList.add('no');
+  S.histAns[idx]=sel===ans;
+}
+function checkHistQuiz(){
+  const cor=Object.values(S.histAns).filter(Boolean).length;
+  const r=document.getElementById('histRs');
+  r.className=cor>=2?'rs show ok':'rs show no';
+  r.innerHTML=cor>=2?`✅ ${HIST_QUIZ.length}문제 중 ${cor}개 정답! 역사 박사!`:`❌ ${HIST_QUIZ.length}문제 중 ${cor}개 정답. 전시물을 다시 살펴봐요!`;
+  if(cor>=2&&!S.stamps.ch3){S.stamps.ch3=true;toast('📜 차시3 역사 탐험 도장 획득!');updateProg();}
+}
+
+/* ═══════════════════════════════════════
+   차시4 — 지킴이 + 엽서
+═══════════════════════════════════════ */
+const HEROES=[
+  {emoji:'⚔️',year:'512년',name:'이사부 장군',role:'신라 장군',
+   detail:'나무로 만든 가짜 사자를 배에 싣고 가서 우산국(독도·울릉도)을 정복했어요. 삼국사기에 기록된 최초의 독도 수호자예요!'},
+  {emoji:'🚣',year:'1696년',name:'안용복',role:'조선의 어부',
+   detail:'일본에 두 차례나 건너가 울릉도와 독도가 조선의 땅임을 일본 관리에게 직접 설명하고 돌아왔어요. 정말 용감한 분이에요!'},
+  {emoji:'✍️',year:'1880년대',name:'독도 의용 수비대',role:'울릉도 청년들',
+   detail:'일본의 불법 침입을 막기 위해 울릉도 청년들이 스스로 만든 자경단이에요. 자비로 독도를 지켰어요.'},
+  {emoji:'🏠',year:'1981년',name:'최종덕',role:'독도 최초 주민',
+   detail:'최초로 독도에 주민 등록을 옮겨 실제로 거주한 분이에요. 독도에 사람이 사는 섬이 되었어요!'},
+  {emoji:'🪖',year:'현재',name:'독도경비대',role:'경찰청 소속',
+   detail:'경찰로 구성된 독도 경비대가 동도 숙소에서 24시간 생활하며 독도를 지키고 있어요. 해군·공군과 함께 정기 훈련도 해요.'},
+];
+
+function buildHeroes(){
+  const c=document.getElementById('heroCards');
+  HEROES.forEach((h,i)=>{
+    const d=document.createElement('div'); d.className='hero-card';
+    d.innerHTML=`<div class="hc-icon">${h.emoji}</div>
+      <div style="flex:1"><div class="hc-year">${h.year}</div>
+        <div class="hc-name">${h.name}</div>
+        <div class="hc-role">${h.role}</div>
+        <div class="hc-detail">${h.detail}</div>
+      </div><span style="color:var(--mist);font-size:.9rem;flex-shrink:0">▼</span>`;
+    d.onclick=()=>{
+      d.classList.toggle('open');
+      S.heroOpened++;
+      if(S.heroOpened>=3&&!S.stamps.ch4){S.stamps.ch4=true;toast('🛡️ 차시4 수호 탐험 도장 획득!');updateProg();}
+    };
+    c.appendChild(d);
+  });
+}
+
+function setRole(btn,name,hint){
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  S.pcRole=name;
+  document.getElementById('pcTitle').textContent=`받는 분: ${name}`;
+  document.getElementById('pcTo').textContent=name;
+  document.getElementById('pcText').placeholder=`${name}에게... ${hint}. 감사와 응원의 마음을 써보세요!`;
+  checkPcBtn();
+}
+function pcCount(){
+  const l=document.getElementById('pcText').value.length;
+  document.getElementById('pcChars').textContent=`${l}자`;
+  checkPcBtn();
+}
+function checkPcBtn(){
+  const ok=S.pcRole&&document.getElementById('pcText').value.length>=20;
+  document.getElementById('pcBtn').disabled=!ok;
+}
+async function getPcFeedback(){
+  const text=document.getElementById('pcText').value;
+  const btn=document.getElementById('pcBtn');
+  btn.disabled=true; btn.innerHTML=`<div class="dots"><span></span><span></span><span></span></div>&nbsp;읽고 있어요...`;
+  const prompt=`초등학교 5학년 사회 선생님으로서, 학생이 "${S.pcRole}"에게 독도 관련 감사 엽서를 썼어요.\n\n엽서 내용:\n"${text}"\n\n칭찬 위주로 따뜻하게, 아래 형식으로 피드백해주세요:\n① 잘 표현한 점 (1~2가지)\n② 더 추가하면 좋을 내용 (1가지, 부드럽게)\n③ 응원 한마디\n\n이모지 활용, 초등학생 눈높이로 쉽게 써주세요.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    const reply=data.content.map(c=>c.text||'').join('');
+    document.getElementById('pcAiTxt').innerHTML=reply.replace(/\n/g,'<br>');
+    document.getElementById('pcAi').classList.add('show');
+    if(!S.stamps.ch4){S.stamps.ch4=true;toast('🛡️ 차시4 수호 탐험 도장 획득!');updateProg();}
+  }catch(e){
+    document.getElementById('pcAiTxt').textContent='피드백을 불러오지 못했어요. 다시 시도해주세요.';
+    document.getElementById('pcAi').classList.add('show');
+  }
+  btn.disabled=false; btn.innerHTML='🤖 AI 선생님 피드백 받기';
+}
+
+/* ═══════════════════════════════════════
+   종합 퀴즈
+═══════════════════════════════════════ */
+const QD=[
+  {q:'독도는 어느 바다에 있나요?',e:'🌊',o:['서해','남해','동해','황해'],a:2},
+  {q:'독도에서 가장 가까운 우리나라 섬은?',e:'🏝️',o:['제주도','거제도','울릉도','강화도'],a:2},
+  {q:'독도의 날은 몇 월 며칠?',e:'📅',o:['8월 15일','10월 25일','3월 1일','9월 9일'],a:1},
+  {q:'대한제국칙령 제41호에서 석도는?',e:'👑',o:['제주도','울릉도','독도','강화도'],a:2},
+  {q:'독도에서 가장 많이 사는 새는?',e:'🦅',o:['독수리','슴새','갈매기','황새'],a:1},
+  {q:'일본이 독도가 자국 땅이 아니라고 스스로 인정한 문서는?',e:'📜',o:['시마네현 고시','태정관 지령','카이로 선언','샌프란시스코 조약'],a:1},
+  {q:'독도는 몇 개의 섬으로 이루어져 있나요?',e:'🏔️',o:['1개','2개','3개','4개'],a:1},
+  {q:'독도의 천연기념물 번호는?',e:'🏛️',o:['100호','200호','336호','500호'],a:2},
+  {q:'512년 우산국을 정복한 신라 장군은?',e:'⚔️',o:['김유신','이사부','을지문덕','강감찬'],a:1},
+  {q:'독도 해저에 있는 미래 에너지 자원은?',e:'⚡',o:['원유','석탄','메탄 하이드레이트','우라늄'],a:2},
+];
+let qarr=[],qidx=0,qscore=0,qanswered=false;
+function shuffle(a){return[...a].sort(()=>Math.random()-.5)}
+function startQuiz(){
+  qarr=shuffle(QD);qidx=0;qscore=0;qanswered=false;
+  document.getElementById('qfinal').classList.remove('show');
+  document.getElementById('qcard').style.display='block';
+  renderQ();
+}
+function renderQ(){
+  const q=qarr[qidx];qanswered=false;
+  document.getElementById('qnum').textContent=`문제 ${qidx+1} / ${qarr.length}`;
+  document.getElementById('qemoji').textContent=q.e;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qctr').textContent=`${qidx} / ${qarr.length}`;
+  document.getElementById('qpf').style.width=`${(qidx/qarr.length)*100}%`;
+  document.getElementById('qs').textContent=qscore;
+  const g=document.getElementById('qopts');g.innerHTML='';
+  q.o.forEach((o,i)=>{
+    const b=document.createElement('button');b.className='qopt';b.textContent=`${['①','②','③','④'][i]} ${o}`;
+    b.onclick=()=>ansQ(i,b);g.appendChild(b);
+  });
+  document.getElementById('qrs').classList.remove('show');
+  document.getElementById('qnext').style.display='none';
+}
+function ansQ(sel,btn){
+  if(qanswered)return;qanswered=true;
+  const q=qarr[qidx];
+  document.querySelectorAll('.qopt').forEach(b=>b.disabled=true);
+  const r=document.getElementById('qrs');
+  if(sel===q.a){btn.classList.add('ok');qscore+=10;r.innerHTML='🎉 정답이에요!';r.className='rs show ok';}
+  else{btn.classList.add('no');document.querySelectorAll('.qopt')[q.a].classList.add('ok');r.innerHTML=`❌ 정답은 <strong>${q.o[q.a]}</strong>예요!`;r.className='rs show no';}
+  document.getElementById('qs').textContent=qscore;
+  document.getElementById('qnext').style.display='flex';
+}
+function nextQ(){
+  qidx++;
+  if(qidx>=qarr.length){showFinal();}else{renderQ();}
+}
+function showFinal(){
+  document.getElementById('qcard').style.display='none';
+  document.getElementById('qfinal').classList.add('show');
+  document.getElementById('qpf').style.width='100%';
+  const p=qscore/100;
+  let e,t,s;
+  if(p>=.9){e='🏆';t='독도 대왕!';s='완벽해요! 독도 전문가가 되었어요!';}
+  else if(p>=.7){e='🥇';t='독도 탐험왕!';s='정말 잘했어요! 조금만 더 해봐요!';}
+  else if(p>=.5){e='🥈';t='독도 친구!';s='잘했어요! 다시 도전해봐요!';}
+  else{e='🌱';t='독도 새싹!';s='차시별 활동을 다시 보고 도전해봐요!';}
+  document.getElementById('fe').textContent=e;
+  document.getElementById('ft').textContent=t;
+  document.getElementById('fp').textContent=`${qscore}점`;
+  document.getElementById('fs').textContent=s;
+  if(!S.stamps.quiz){S.stamps.quiz=true;toast('❓ 퀴즈 왕 도장 획득!');updateProg();}
+}
+
+/* ═══════════════════════════════════════
+   낱말 찾기
+═══════════════════════════════════════ */
+const WORDS=['독도','동해','울릉도','이사부','안용복','슴새','칙령','동도','서도','자연'];
+const GRID=[
+  ['독','도','탐','험','대','동','해','물'],
+  ['이','자','연','친','구','아','름','다'],
+  ['사','울','릉','도','경','비','대','워'],
+  ['부','안','용','복','슴','새','가','요'],
+  ['동','도','역','사','여','행','칙','령'],
+  ['서','도','화','산','섬','바','위','길'],
+  ['한','국','대','한','제','국','우','리'],
+  ['땅','지','킴','이','독','도','왕','국'],
+];
+const WPOS={'독도':[[0,0],[0,1]],'동해':[[0,5],[0,6]],'울릉도':[[2,1],[2,2],[2,3]],'이사부':[[1,0],[2,0],[3,0]],'안용복':[[3,1],[3,2],[3,3]],'슴새':[[3,4],[3,5]],'칙령':[[4,6],[4,7]],'동도':[[4,0],[4,1]],'서도':[[5,0],[5,1]],'자연':[[1,1],[1,2]]};
+let wfound=[],wsel=[];
+function buildWord(){
+  wfound=[];wsel=[];
+  const g=document.getElementById('wgrid');g.innerHTML='';
+  GRID.forEach((row,r)=>{
+    const rd=document.createElement('div');rd.className='wrow';
+    row.forEach((ch,c)=>{
+      const cell=document.createElement('div');cell.className='wc';cell.textContent=ch;
+      cell.dataset.r=r;cell.dataset.c=c;cell.onclick=()=>wClick(cell,r,c);rd.appendChild(cell);
+    });
+    g.appendChild(rd);
+  });
+  const chips=document.getElementById('wchips');chips.innerHTML='';
+  WORDS.forEach(w=>{const c=document.createElement('div');c.className='wchip';c.textContent=w;c.id=`wc-${w}`;chips.appendChild(c);});
+  document.getElementById('wfound').textContent='0';
+  document.getElementById('wtotal').textContent=WORDS.length;
+  document.getElementById('wmsg').style.display='none';
+}
+function wClick(cell,r,c){
+  if(cell.classList.contains('found'))return;
+  if(wsel.find(s=>s.r===r&&s.c===c)){cell.classList.remove('sel');wsel=wsel.filter(s=>!(s.r===r&&s.c===c));return;}
+  cell.classList.add('sel');wsel.push({r,c,cell});
+  for(const[word,pos]of Object.entries(WPOS)){
+    if(wfound.includes(word))continue;
+    const pStr=pos.map(p=>`${p[0]},${p[1]}`).sort().join('|');
+    const sStr=wsel.map(s=>`${s.r},${s.c}`).sort().join('|');
+    if(pStr===sStr){
+      wsel.forEach(s=>{s.cell.classList.remove('sel');s.cell.classList.add('found');});
+      wsel=[];wfound.push(word);
+      document.getElementById(`wc-${word}`).classList.add('found');
+      document.getElementById('wfound').textContent=wfound.length;
+      toast(`✅ "${word}" 찾았어요!`);
+      if(wfound.length===WORDS.length){
+        document.getElementById('wmsg').style.display='block';
+        document.getElementById('wmsg').textContent='🎊 모든 낱말을 찾았어요!';
+        if(!S.stamps.word){S.stamps.word=true;toast('🔤 낱말 탐정 도장 획득!');updateProg();}
+      }
+      return;
+    }
+  }
+  if(wsel.length>=4){wsel.forEach(s=>{s.cell.classList.add('shake');setTimeout(()=>s.cell.classList.remove('shake','sel'),400);});wsel=[];}
+}
+
+/* ═══════════════════════════════════════
+   STAMPS & PROGRESS
+═══════════════════════════════════════ */
+const STAMP_DEFS=[
+  {key:'ch1',icon:'🗺️',label:'위치 탐험가'},
+  {key:'ch2',icon:'🎲',label:'자연 탐사가'},
+  {key:'ch3',icon:'📜',label:'역사 박사'},
+  {key:'ch4',icon:'🛡️',label:'독도 수호자'},
+  {key:'quiz',icon:'❓',label:'퀴즈 왕'},
+  {key:'word',icon:'🔤',label:'낱말 탐정'},
+];
+function renderStamps(){
+  const earned=STAMP_DEFS.filter(d=>S.stamps[d.key]).length;
+  const pct=Math.round(earned/STAMP_DEFS.length*100);
+  document.getElementById('sProg').style.width=`${pct}%`;
+  document.getElementById('sProgCnt').textContent=`${earned} / ${STAMP_DEFS.length}`;
+  document.getElementById('sProgTxt').textContent=earned>=STAMP_DEFS.length?'🎊 모든 도장 획득! 독도 왕!':earned===0?'시작해보세요!':`${STAMP_DEFS.length-earned}개 더 모으면 독도 왕!`;
+  const g=document.getElementById('sgrid');g.innerHTML='';
+  STAMP_DEFS.forEach(d=>{
+    const el=document.createElement('div');el.className=`stamp${S.stamps[d.key]?' earned':''}`;
+    el.innerHTML=`<span class="si">${d.icon}</span><div class="sl">${d.label}</div>`;
+    g.appendChild(el);
+  });
+  const sumEarned=STAMP_DEFS.filter(d=>S.stamps[d.key]).length;
+  document.getElementById('sumContent').innerHTML=sumEarned===0
+    ?'<div style="padding:14px;color:#aaa;font-size:.88rem">활동을 완료하면 결과가 나타나요!</div>'
+    :`<div style="padding:14px;text-align:center">
+      <div style="font-family:'Black Han Sans',sans-serif;font-size:1.4rem;color:var(--ink);margin-bottom:4px">${sumEarned>=STAMP_DEFS.length?'🏆 독도 왕 달성!':sumEarned+'개 도장 획득'}</div>
+      <div style="font-size:.84rem;color:#666">${sumEarned>=STAMP_DEFS.length?'모든 차시 활동 완료!':'차시별 활동을 계속해봐요!'}</div>
+      ${qscore>0?`<div style="margin-top:10px;background:var(--paper);border-radius:9px;padding:10px;font-weight:700;color:var(--ocean)">퀴즈 점수 ${qscore}점</div>`:''}
+    </div>`;
+}
+function updateProg(){
+  const earned=STAMP_DEFS.filter(d=>S.stamps[d.key]).length;
+  const total=5; // 차시4 + 퀴즈
+  const main=Math.min(earned,total);
+  const pct=Math.round(main/total*100);
+  document.getElementById('mainProg').style.width=`${pct}%`;
+  document.getElementById('mainProgCnt').textContent=`${main} / ${total}`;
+  document.getElementById('mainProgTxt').textContent=earned===0?'탐험을 시작해보세요!':earned>=total?'🎊 모든 탐험 완료!':earned+'개 활동 완료!';
+  document.getElementById('hbadge').textContent=`🎖 ${earned} / ${STAMP_DEFS.length}`;
+}
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+function toast(msg){
+  const t=document.getElementById('toastEl');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+window.onload=()=>{
+  buildCh1();
+  buildBoard();
+  buildMuseum();
+  buildHeroes();
+  buildWord();
+  startQuiz();
+  updateProg();
+};
+</script>
+</body>
+</html>
