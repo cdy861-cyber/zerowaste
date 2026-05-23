@@ -480,6 +480,7 @@ select.form-input{-webkit-appearance:none;appearance:none;}
     <div class="form-row">
       <div class="form-group"><label class="form-label">보유수량 (주)</label><input class="form-input" type="number" id="s_qty" placeholder="0"></div>
       <div class="form-group"><label class="form-label" id="s_avg_label">평균매입가 (원)</label><input class="form-input" type="number" id="s_avg" placeholder="0"></div>
+      <div class="form-group"><label class="form-label" id="s_cur_label">현재가 (원, 수동입력)</label><input class="form-input" type="number" id="s_currentPrice" placeholder="0 (비워두면 API 자동조회)"></div>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-sage btn-full" onclick="saveStock()">저장</button>
@@ -1039,15 +1040,13 @@ window.refreshStocks=async function(){
   if(btn){btn.disabled=true;btn.textContent='조회 중...';}
   toast('시세 조회 중...');
 
-  let ok=0,fail=0;
+  let ok=0,fail=0,skipped=0;
   for(const s of targets){
-    // 종목코드 처리: 140410.KQ -> 140410, KRX 거래소
+    // 국내주식은 수동입력이므로 API 조회 건너뜀
+    if(!isForeignAsset(s.assetType)){skipped++;continue;}
+
     let sym=s.code||s.name;
-    let exchange='KRX';
-    let isForeign=false;
-    if(sym.includes('.KS')){sym=sym.replace('.KS','');exchange='KRX';}
-    else if(sym.includes('.KQ')){sym=sym.replace('.KQ','');exchange='KOSDAQ';}
-    else if(!sym.match(/^[0-9]+$/)){isForeign=true;exchange='';}// 해외: AAPL, QQQ 등
+    let exchange='';
 
     const baseUrl='https://api.twelvedata.com/price?apikey='+apiKey
       +'&symbol='+encodeURIComponent(sym)
@@ -1079,7 +1078,9 @@ window.refreshStocks=async function(){
     }
   }
   renderStockList();
-  toast(ok>0?('✅ '+ok+'개 갱신완료!'+(fail>0?' ('+fail+'개 실패)':'')):'❌ 전체 실패 - API키 확인해주세요');
+  if(ok>0) toast('✅ '+ok+'개 갱신완료!'+(fail>0?' ('+fail+'개 실패)':'')+(skipped>0?' / 국내주식 '+skipped+'개 수동관리':''));
+  else if(fail>0) toast('❌ 전체 실패 - API키 확인해주세요');
+  else toast('국내주식은 수동입력으로 관리해주세요 😊');
   if(btn){btn.disabled=false;btn.textContent='🔄 시세 갱신';}
 };
 // 해외 자산 여부 판단
@@ -1088,17 +1089,22 @@ function isForeignAsset(assetType){
 }
 window.updateAvgLabel=function(){
   const type=$('s_assetType').value;
-  $('s_avg_label').textContent=isForeignAsset(type)?'평균매입가 ($)':'평균매입가 (원)';
+  const foreign=isForeignAsset(type);
+  $('s_avg_label').textContent=foreign?'평균매입가 ($)':'평균매입가 (원)';
+  $('s_cur_label').textContent=foreign?'현재가 ($, 수동입력)':'현재가 (원, 수동입력)';
 };
 window.openStockModal=function(id){
   editStockId=id||null;$('stockModalTitle').textContent=id?'📈 종목 수정':'📈 종목 추가';
-  if(id){const s=stocks.find(x=>x.id===id);if(s){$('s_holder').value=s.holder;$('s_assetType').value=s.assetType||'국내주식';$('s_code').value=s.code||'';$('s_name').value=s.name;$('s_qty').value=s.qty;$('s_avg').value=s.avgPrice;}}
-  else{['s_code','s_name','s_qty','s_avg'].forEach(i=>$(i).value='');$('s_assetType').value='국내주식';}
+  if(id){const s=stocks.find(x=>x.id===id);if(s){$('s_holder').value=s.holder;$('s_assetType').value=s.assetType||'국내주식';$('s_code').value=s.code||'';$('s_name').value=s.name;$('s_qty').value=s.qty;$('s_avg').value=s.avgPrice;$('s_currentPrice').value=s.manualPrice||'';}}
+  else{['s_code','s_name','s_qty','s_avg','s_currentPrice'].forEach(i=>$(i).value='');$('s_assetType').value='국내주식';}
   updateAvgLabel();
   openModal('modal-stock');
 };
 window.saveStock=async function(){
-  const data={holder:$('s_holder').value,assetType:$('s_assetType').value,code:$('s_code').value.trim(),name:$('s_name').value.trim(),qty:Number($('s_qty').value)||0,avgPrice:Number($('s_avg').value)||0,updatedAt:serverTimestamp()};
+  const manualPrice=Number($('s_currentPrice').value)||0;
+  const data={holder:$('s_holder').value,assetType:$('s_assetType').value,code:$('s_code').value.trim(),name:$('s_name').value.trim(),qty:Number($('s_qty').value)||0,avgPrice:Number($('s_avg').value)||0,manualPrice:manualPrice,updatedAt:serverTimestamp()};
+  // 수동입력가 있으면 currentPrice도 같이 저장 (단, 해외주식 API 조회분은 덮어쓰지 않음)
+  if(manualPrice>0) data.currentPrice=manualPrice;
   if(!data.name||!data.qty){toast('종목명, 수량 필수');return;}
   if(editStockId)await updateDoc(doc(db,'stocks',editStockId),data);
   else await addDoc(collection(db,'stocks'),data);
