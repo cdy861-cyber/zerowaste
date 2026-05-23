@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>우리 가족 건강 기록</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC1VelhaJqL8HzmSjRzbenjN8R-kwz-Yfc",
+    authDomain: "health-fba6a.firebaseapp.com",
+    databaseURL: "https://health-fba6a-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "health-fba6a",
+    storageBucket: "health-fba6a.firebasestorage.app",
+    messagingSenderId: "215200638400",
+    appId: "1:215200638400:web:ce9a0d0917667ffd9e9425",
+    measurementId: "G-SHMJ8X0M0Y"
+  };
+
+  let app, db;
+  let firebaseReady = false;
+
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+    firebaseReady = !firebaseConfig.apiKey.includes("YOUR_");
+  } catch(e) {
+    console.warn("Firebase 미설정:", e);
+  }
+
+  window._fb = { db, ref, set, push, onValue, remove, ready: () => firebaseReady };
+</script>
+
+<style>
+:root {
+  --mom: #E8553E;
+  --dad: #2C7BE5;
+  --bg: #0F0F0F;
+  --surface: #1A1A1A;
+  --surface2: #242424;
+  --border: #2E2E2E;
+  --text: #F0F0F0;
+  --text2: #888;
+  --accent: #F5C842;
+  --radius: 16px;
+  --tab-color: var(--mom);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── SPLASH ── */
+#splash {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px;
+  transition: opacity .5s;
+}
+#splash .logo { font-family: 'Oswald', sans-serif; font-size: 42px; font-weight: 700; letter-spacing: 2px; }
+#splash .logo span { color: var(--accent); }
+#splash .sub { color: var(--text2); font-size: 14px; }
+#splash.hidden { opacity: 0; pointer-events: none; }
+
+/* ── TOP BAR ── */
+header {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--bg);
+  padding: 16px 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.header-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.app-title { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 1px; }
+.app-title span { color: var(--accent); }
+.sync-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #555; transition: background .3s;
+}
+.sync-dot.live { background: #4CAF50; box-shadow: 0 0 6px #4CAF50; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+/* ── TABS ── */
+.tabs {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4px; padding-bottom: 0;
+}
+.tab {
+  padding: 10px; text-align: center; font-size: 16px; font-weight: 700;
+  cursor: pointer; border-radius: 10px 10px 0 0;
+  transition: all .2s; color: var(--text2);
+  position: relative;
+}
+.tab.active { color: var(--text); }
+.tab.mom.active { color: var(--mom); }
+.tab.dad.active { color: var(--dad); }
+.tab::after {
+  content: ''; position: absolute; bottom: 0; left: 10%; right: 10%;
+  height: 3px; border-radius: 3px 3px 0 0;
+  background: transparent; transition: background .2s;
+}
+.tab.mom.active::after { background: var(--mom); }
+.tab.dad.active::after { background: var(--dad); }
+
+/* ── NAV ── */
+nav {
+  display: flex; gap: 4px;
+  background: var(--surface);
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.nav-btn {
+  flex: 1; padding: 8px 4px; font-size: 11px; font-weight: 500;
+  color: var(--text2); background: transparent; border: none;
+  border-radius: 10px; cursor: pointer; transition: all .2s;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.nav-btn .icon { font-size: 20px; }
+.nav-btn.active { color: var(--text); background: var(--surface2); }
+.nav-btn.active.mom-active { color: var(--mom); }
+.nav-btn.active.dad-active { color: var(--dad); }
+
+/* ── MAIN ── */
+main { padding: 16px; padding-bottom: 24px; }
+
+.section { display: none; }
+.section.active { display: flex; flex-direction: column; gap: 14px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 18px;
+  border: 1px solid var(--border);
+}
+.card-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+  color: var(--text2); text-transform: uppercase; margin-bottom: 14px;
+}
+.card-title.colored { color: var(--tab-color); }
+
+/* ── STAT SUMMARY ── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat-item {
+  background: var(--surface2); border-radius: 12px; padding: 14px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.stat-value { font-family: 'Oswald', sans-serif; font-size: 28px; font-weight: 600; }
+.stat-unit { font-size: 11px; color: var(--text2); }
+.stat-label { font-size: 12px; color: var(--text2); }
+
+/* ── WEIGHT ── */
+.weight-display {
+  text-align: center; padding: 10px 0 16px;
+}
+.weight-big {
+  font-family: 'Oswald', sans-serif;
+  font-size: 64px; font-weight: 700;
+  line-height: 1;
+}
+.weight-big span { font-size: 24px; color: var(--text2); }
+.weight-change { font-size: 13px; margin-top: 6px; }
+.weight-change.down { color: #4CAF50; }
+.weight-change.up { color: #E53935; }
+
+.input-row { display: flex; gap: 10px; align-items: center; }
+.num-input {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 16px; color: var(--text);
+  font-size: 18px; font-family: 'Oswald', sans-serif; outline: none;
+  transition: border-color .2s;
+}
+.num-input:focus { border-color: var(--tab-color); }
+.btn {
+  padding: 14px 20px; border-radius: 12px; border: none;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: all .15s; font-family: 'Noto Sans KR', sans-serif;
+}
+.btn-primary { background: var(--tab-color); color: #fff; }
+.btn-primary:active { transform: scale(.96); opacity: .9; }
+.btn-sm { padding: 8px 14px; font-size: 13px; }
+
+/* Weight chart bars */
+.weight-history { display: flex; flex-direction: column; gap: 8px; }
+.weight-bar-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.weight-bar-label { width: 80px; color: var(--text2); flex-shrink: 0; font-size: 12px; }
+.weight-bar-wrap { flex: 1; background: var(--surface2); border-radius: 4px; height: 8px; overflow: hidden; }
+.weight-bar { height: 100%; border-radius: 4px; background: var(--tab-color); transition: width .5s; }
+.weight-bar-val { width: 52px; text-align: right; font-family: 'Oswald', sans-serif; font-size: 14px; }
+
+/* ── RUNNING ── */
+.run-tracker {
+  background: var(--surface2); border-radius: 12px; padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.run-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.run-stat { text-align: center; }
+.run-stat-val { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 600; }
+.run-stat-lbl { font-size: 11px; color: var(--text2); }
+
+#map {
+  width: 100%; height: 220px; border-radius: 12px;
+  background: #1e2a1e; overflow: hidden; position: relative;
+}
+#map canvas { width: 100% !important; height: 100% !important; }
+.map-placeholder {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: var(--text2); gap: 8px; font-size: 13px;
+}
+
+.run-btns { display: flex; gap: 10px; }
+.btn-run-start {
+  flex: 1; padding: 16px; background: #4CAF50; color: #fff;
+  border: none; border-radius: 14px; font-size: 18px; font-weight: 700;
+  cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all .15s;
+}
+.btn-run-stop {
+  flex: 1; padding: 16px; background: #E53935; color: #fff;
+  border: none; border-radius: 14px; font-size: 18px; font-weight: 700;
+  cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all .15s;
+  display: none;
+}
+.btn-run-start:active, .btn-run-stop:active { transform: scale(.97); }
+
+.run-history { display: flex; flex-direction: column; gap: 8px; }
+.run-item {
+  background: var(--surface2); border-radius: 12px; padding: 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.run-item-icon { font-size: 24px; }
+.run-item-info { flex: 1; }
+.run-item-dist { font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 600; }
+.run-item-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.run-item-del { background: none; border: none; color: var(--text2); font-size: 18px; cursor: pointer; padding: 4px; }
+
+/* ── DIET ── */
+.meal-section { display: flex; flex-direction: column; gap: 8px; }
+.meal-label { font-size: 13px; font-weight: 700; color: var(--text2); padding: 4px 0 2px; display: flex; align-items: center; gap: 6px; }
+.meal-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.diet-input-area { display: flex; flex-direction: column; gap: 10px; }
+.text-input {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px; color: var(--text);
+  font-size: 15px; font-family: 'Noto Sans KR', sans-serif; outline: none;
+  resize: none; transition: border-color .2s; width: 100%;
+}
+.text-input:focus { border-color: var(--tab-color); }
+.meal-row {
+  display: flex; gap: 8px; align-items: center;
+}
+.meal-select {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px; color: var(--text);
+  font-size: 14px; font-family: 'Noto Sans KR', sans-serif; outline: none;
+  appearance: none; cursor: pointer;
+}
+.diet-item {
+  background: var(--surface2); border-radius: 12px; padding: 12px 14px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.diet-item-meal { font-size: 11px; color: var(--tab-color); font-weight: 700; margin-bottom: 2px; }
+.diet-item-text { font-size: 14px; flex: 1; }
+.diet-item-time { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.diet-item-del { background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; padding: 2px 4px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 12px 24px; border-radius: 99px;
+  font-size: 14px; z-index: 999; transition: transform .3s;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── COMPARE VIEW ── */
+.compare-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.compare-card {
+  background: var(--surface2); border-radius: 14px; padding: 14px;
+  border-top: 3px solid;
+}
+.compare-card.mom { border-color: var(--mom); }
+.compare-card.dad { border-color: var(--dad); }
+.compare-who { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.compare-who.mom { color: var(--mom); }
+.compare-who.dad { color: var(--dad); }
+.compare-val { font-family: 'Oswald', sans-serif; font-size: 26px; }
+.compare-lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+.empty { text-align: center; color: var(--text2); padding: 30px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="logo">건강<span>LOG</span></div>
+  <div class="sub">우리 가족 운동 기록</div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-top">
+    <div class="app-title">건강<span>LOG</span></div>
+    <div class="sync-dot" id="syncDot" title="Firebase 연결 상태"></div>
+  </div>
+  <div class="tabs">
+    <div class="tab mom active" onclick="switchUser('mom')">🌸 엄마</div>
+    <div class="tab dad" onclick="switchUser('dad')">💪 아빠</div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav>
+  <button class="nav-btn active mom-active" id="nav-home" onclick="switchSection('home')">
+    <span class="icon">🏠</span>홈
+  </button>
+  <button class="nav-btn" id="nav-weight" onclick="switchSection('weight')">
+    <span class="icon">⚖️</span>몸무게
+  </button>
+  <button class="nav-btn" id="nav-run" onclick="switchSection('run')">
+    <span class="icon">🏃</span>런닝
+  </button>
+  <button class="nav-btn" id="nav-diet" onclick="switchSection('diet')">
+    <span class="icon">🥗</span>식단
+  </button>
+</nav>
+
+<main>
+
+<!-- ── HOME ── -->
+<div id="section-home" class="section active">
+  <div class="card">
+    <div class="card-title colored" id="home-name-title">엄마 오늘의 현황</div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value" id="home-weight">--</div>
+        <div class="stat-unit">kg</div>
+        <div class="stat-label">현재 몸무게</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="home-runs">--</div>
+        <div class="stat-unit">회</div>
+        <div class="stat-label">이번 달 런닝</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="home-km">--</div>
+        <div class="stat-unit">km</div>
+        <div class="stat-label">이번 달 거리</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="home-diet">--</div>
+        <div class="stat-unit">개</div>
+        <div class="stat-label">오늘 식단 기록</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">함께 보기</div>
+    <div class="compare-row">
+      <div class="compare-card mom">
+        <div class="compare-who mom">🌸 엄마</div>
+        <div class="compare-val" id="cmp-mom-weight">--</div>
+        <div class="compare-lbl">kg</div>
+        <div style="margin-top:10px">
+          <div class="compare-val" id="cmp-mom-km" style="font-size:20px">--</div>
+          <div class="compare-lbl">이번 달 km</div>
+        </div>
+      </div>
+      <div class="compare-card dad">
+        <div class="compare-who dad">💪 아빠</div>
+        <div class="compare-val" id="cmp-dad-weight">--</div>
+        <div class="compare-lbl">kg</div>
+        <div style="margin-top:10px">
+          <div class="compare-val" id="cmp-dad-km" style="font-size:20px">--</div>
+          <div class="compare-lbl">이번 달 km</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── WEIGHT ── -->
+<div id="section-weight" class="section">
+  <div class="card">
+    <div class="card-title colored">오늘 몸무게</div>
+    <div class="weight-display">
+      <div class="weight-big" id="weight-current">--<span>kg</span></div>
+      <div class="weight-change" id="weight-change"></div>
+    </div>
+    <div class="input-row">
+      <input type="number" class="num-input" id="weight-input" placeholder="00.0" step="0.1" min="30" max="200">
+      <button class="btn btn-primary" onclick="saveWeight()">저장</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">최근 기록</div>
+    <div class="weight-history" id="weight-history-list"></div>
+  </div>
+</div>
+
+<!-- ── RUNNING ── -->
+<div id="section-run" class="section">
+  <div class="card">
+    <div class="card-title colored">런닝 트래커</div>
+    <div class="run-tracker">
+      <div id="map">
+        <div class="map-placeholder" id="map-placeholder">
+          <div style="font-size:36px">🗺️</div>
+          <div>시작 버튼을 누르면<br>GPS 경로 추적을 시작해요</div>
+        </div>
+        <canvas id="runCanvas"></canvas>
+      </div>
+      <div class="run-stats">
+        <div class="run-stat">
+          <div class="run-stat-val" id="run-km">0.00</div>
+          <div class="run-stat-lbl">km</div>
+        </div>
+        <div class="run-stat">
+          <div class="run-stat-val" id="run-time">00:00</div>
+          <div class="run-stat-lbl">시간</div>
+        </div>
+        <div class="run-stat">
+          <div class="run-stat-val" id="run-pace">--</div>
+          <div class="run-stat-lbl">페이스/km</div>
+        </div>
+      </div>
+      <div class="run-btns">
+        <button class="btn-run-start" id="btn-run-start" onclick="startRun()">🏃 시작</button>
+        <button class="btn-run-stop" id="btn-run-stop" onclick="stopRun()">⏹ 완료</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual add -->
+  <div class="card">
+    <div class="card-title">직접 입력</div>
+    <div class="input-row">
+      <input type="number" class="num-input" id="run-input-km" placeholder="km" step="0.1" min="0" style="font-size:15px">
+      <input type="number" class="num-input" id="run-input-min" placeholder="분" step="1" min="0" style="font-size:15px;max-width:80px">
+      <button class="btn btn-primary btn-sm" onclick="saveRunManual()">추가</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">런닝 기록</div>
+    <div class="run-history" id="run-history-list"></div>
+  </div>
+</div>
+
+<!-- ── DIET ── -->
+<div id="section-diet" class="section">
+  <div class="card">
+    <div class="card-title colored">식단 추가</div>
+    <div class="diet-input-area">
+      <div class="meal-row">
+        <select class="meal-select" id="meal-type">
+          <option value="아침">🌅 아침</option>
+          <option value="점심">☀️ 점심</option>
+          <option value="저녁">🌙 저녁</option>
+          <option value="간식">🍎 간식</option>
+        </select>
+        <input type="text" class="text-input" id="diet-input" placeholder="먹은 음식을 입력하세요" style="flex:1">
+      </div>
+      <button class="btn btn-primary" onclick="saveDiet()" style="width:100%">기록하기</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">오늘 식단</div>
+    <div id="diet-list"><div class="empty">오늘 기록이 없어요</div></div>
+  </div>
+</div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+let currentUser = 'mom';
+let currentSection = 'home';
+let runningState = { active: false, startTime: null, seconds: 0, coords: [], distance: 0, watchId: null, timer: null };
+let data = { mom: { weights: [], runs: [], diets: [] }, dad: { weights: [], runs: [], diets: [] } };
+let fbListeners = {};
+
+const COLOR = { mom: '#E8553E', dad: '#2C7BE5' };
+
+// ─── INIT ─────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hidden');
+  }, 1200);
+  initFirebase();
+});
+
+function initFirebase() {
+  const check = setInterval(() => {
+    if (!window._fb) return;
+    clearInterval(check);
+    if (window._fb.ready()) {
+      document.getElementById('syncDot').classList.add('live');
+      listenFirebase('mom');
+      listenFirebase('dad');
+    } else {
+      loadLocal();
+    }
+  }, 200);
+}
+
+function listenFirebase(user) {
+  const { db, ref, onValue } = window._fb;
+  const r = ref(db, user);
+  onValue(r, snap => {
+    const val = snap.val();
+    if (val) {
+      data[user] = {
+        weights: val.weights ? Object.entries(val.weights).map(([k,v])=>({...v,_key:k})).sort((a,b)=>b.ts-a.ts) : [],
+        runs: val.runs ? Object.entries(val.runs).map(([k,v])=>({...v,_key:k})).sort((a,b)=>b.ts-a.ts) : [],
+        diets: val.diets ? Object.entries(val.diets).map(([k,v])=>({...v,_key:k})).sort((a,b)=>b.ts-a.ts) : []
+      };
+    } else {
+      data[user] = { weights: [], runs: [], diets: [] };
+    }
+    renderAll();
+  });
+}
+
+function loadLocal() {
+  try {
+    const saved = localStorage.getItem('healthlog_data');
+    if (saved) data = JSON.parse(saved);
+  } catch(e) {}
+  renderAll();
+}
+
+function saveLocal() {
+  try { localStorage.setItem('healthlog_data', JSON.stringify(data)); } catch(e) {}
+}
+
+async function fbPush(path, value) {
+  if (window._fb && window._fb.ready()) {
+    const { db, ref, push } = window._fb;
+    const r = ref(db, path);
+    const newRef = push(r);
+    await window._fb.set(newRef, value);
+    return newRef.key;
+  }
+  return null;
+}
+
+async function fbRemove(path) {
+  if (window._fb && window._fb.ready()) {
+    const { db, ref, remove } = window._fb;
+    await remove(ref(db, path));
+  }
+}
+
+// ─── USER / SECTION SWITCHING ─────────────────────────────
+function switchUser(user) {
+  currentUser = user;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab.${user}`).classList.add('active');
+  document.documentElement.style.setProperty('--tab-color', COLOR[user]);
+  const activeClass = user === 'mom' ? 'mom-active' : 'dad-active';
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.remove('mom-active','dad-active');
+    if (b.classList.contains('active')) b.classList.add(activeClass);
+  });
+  renderAll();
+}
+
+function switchSection(sec) {
+  currentSection = sec;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`section-${sec}`).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.remove('active','mom-active','dad-active');
+  });
+  const btn = document.getElementById(`nav-${sec}`);
+  btn.classList.add('active');
+  btn.classList.add(currentUser === 'mom' ? 'mom-active' : 'dad-active');
+  renderAll();
+}
+
+// ─── RENDER ───────────────────────────────────────────────
+function renderAll() {
+  renderHome();
+  renderWeight();
+  renderRuns();
+  renderDiet();
+}
+
+function renderHome() {
+  const u = data[currentUser];
+  const name = currentUser === 'mom' ? '엄마' : '아빠';
+  document.getElementById('home-name-title').textContent = `${name} 오늘의 현황`;
+  document.getElementById('home-weight').textContent = u.weights[0] ? u.weights[0].val : '--';
+
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const monthRuns = u.runs.filter(r => r.date && r.date.startsWith(thisMonth));
+  document.getElementById('home-runs').textContent = monthRuns.length || '--';
+  const totalKm = monthRuns.reduce((s,r) => s + (parseFloat(r.km)||0), 0);
+  document.getElementById('home-km').textContent = totalKm > 0 ? totalKm.toFixed(1) : '--';
+
+  const today = toDateStr(new Date());
+  const todayDiet = u.diets.filter(d => d.date === today);
+  document.getElementById('home-diet').textContent = todayDiet.length || '--';
+
+  // Compare
+  const mW = data.mom.weights[0];
+  const dW = data.dad.weights[0];
+  document.getElementById('cmp-mom-weight').textContent = mW ? mW.val : '--';
+  document.getElementById('cmp-dad-weight').textContent = dW ? dW.val : '--';
+
+  const mRuns = data.mom.runs.filter(r => r.date && r.date.startsWith(thisMonth));
+  const dRuns = data.dad.runs.filter(r => r.date && r.date.startsWith(thisMonth));
+  document.getElementById('cmp-mom-km').textContent = mRuns.reduce((s,r)=>s+(parseFloat(r.km)||0),0).toFixed(1);
+  document.getElementById('cmp-dad-km').textContent = dRuns.reduce((s,r)=>s+(parseFloat(r.km)||0),0).toFixed(1);
+}
+
+function renderWeight() {
+  const u = data[currentUser];
+  const weights = u.weights;
+  if (weights.length > 0) {
+    document.getElementById('weight-current').innerHTML = `${weights[0].val}<span>kg</span>`;
+    if (weights.length > 1) {
+      const diff = (weights[0].val - weights[1].val).toFixed(1);
+      const el = document.getElementById('weight-change');
+      if (diff < 0) { el.className = 'weight-change down'; el.textContent = `▼ ${Math.abs(diff)}kg 감소`; }
+      else if (diff > 0) { el.className = 'weight-change up'; el.textContent = `▲ ${diff}kg 증가`; }
+      else { el.className = 'weight-change'; el.textContent = '변화 없음'; }
+    }
+  } else {
+    document.getElementById('weight-current').innerHTML = '--<span>kg</span>';
+    document.getElementById('weight-change').textContent = '';
+  }
+
+  const list = document.getElementById('weight-history-list');
+  if (weights.length === 0) { list.innerHTML = '<div class="empty">기록이 없어요</div>'; return; }
+  const max = Math.max(...weights.slice(0,7).map(w=>w.val));
+  const min = Math.min(...weights.slice(0,7).map(w=>w.val));
+  const range = max - min || 1;
+  list.innerHTML = weights.slice(0,7).map(w => {
+    const pct = ((w.val - min) / range * 60 + 30);
+    return `<div class="weight-bar-row">
+      <div class="weight-bar-label">${w.date}</div>
+      <div class="weight-bar-wrap"><div class="weight-bar" style="width:${pct}%"></div></div>
+      <div class="weight-bar-val">${w.val}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRuns() {
+  const u = data[currentUser];
+  const list = document.getElementById('run-history-list');
+  if (u.runs.length === 0) { list.innerHTML = '<div class="empty">런닝 기록이 없어요</div>'; return; }
+  list.innerHTML = u.runs.slice(0,10).map(r => `
+    <div class="run-item">
+      <div class="run-item-icon">🏃</div>
+      <div class="run-item-info">
+        <div class="run-item-dist">${r.km} km</div>
+        <div class="run-item-meta">${r.date} · ${r.duration || '--'}</div>
+      </div>
+      <button class="run-item-del" onclick="deleteRun('${r._key || r.ts}')">✕</button>
+    </div>`).join('');
+}
+
+function renderDiet() {
+  const u = data[currentUser];
+  const today = toDateStr(new Date());
+  const todayDiets = u.diets.filter(d => d.date === today);
+  const list = document.getElementById('diet-list');
+  if (todayDiets.length === 0) { list.innerHTML = '<div class="empty">오늘 기록이 없어요</div>'; return; }
+  const meals = ['아침','점심','저녁','간식'];
+  let html = '';
+  meals.forEach(meal => {
+    const items = todayDiets.filter(d => d.meal === meal);
+    if (items.length === 0) return;
+    html += `<div class="meal-label">${meal}</div>`;
+    items.forEach(item => {
+      html += `<div class="diet-item">
+        <div style="flex:1">
+          <div class="diet-item-text">${item.text}</div>
+          <div class="diet-item-time">${item.time}</div>
+        </div>
+        <button class="diet-item-del" onclick="deleteDiet('${item._key || item.ts}')">✕</button>
+      </div>`;
+    });
+  });
+  list.innerHTML = html;
+}
+
+// ─── WEIGHT SAVE ──────────────────────────────────────────
+async function saveWeight() {
+  const val = parseFloat(document.getElementById('weight-input').value);
+  if (!val || val < 30 || val > 200) { toast('올바른 몸무게를 입력해주세요'); return; }
+  const entry = { val, date: toDateStr(new Date()), ts: Date.now() };
+  if (window._fb && window._fb.ready()) {
+    await fbPush(`${currentUser}/weights`, entry);
+  } else {
+    data[currentUser].weights.unshift(entry);
+    saveLocal();
+    renderAll();
+  }
+  document.getElementById('weight-input').value = '';
+  toast('몸무게 기록 완료! ✅');
+}
+
+// ─── RUN ──────────────────────────────────────────────────
+function startRun() {
+  if (!navigator.geolocation) { toast('이 기기는 GPS를 지원하지 않아요'); return; }
+  runningState = { active: true, startTime: Date.now(), seconds: 0, coords: [], distance: 0, watchId: null, timer: null };
+  document.getElementById('btn-run-start').style.display = 'none';
+  document.getElementById('btn-run-stop').style.display = 'flex';
+  document.getElementById('map-placeholder').style.display = 'none';
+
+  runningState.timer = setInterval(() => {
+    runningState.seconds++;
+    const m = String(Math.floor(runningState.seconds/60)).padStart(2,'0');
+    const s = String(runningState.seconds%60).padStart(2,'0');
+    document.getElementById('run-time').textContent = `${m}:${s}`;
+    if (runningState.distance > 0) {
+      const pace = runningState.seconds / 60 / runningState.distance;
+      const pm = Math.floor(pace); const ps = Math.round((pace-pm)*60);
+      document.getElementById('run-pace').textContent = `${pm}'${String(ps).padStart(2,'0')}"`;
+    }
+  }, 1000);
+
+  runningState.watchId = navigator.geolocation.watchPosition(pos => {
+    const { latitude: lat, longitude: lng } = pos.coords;
+    const coords = runningState.coords;
+    if (coords.length > 0) {
+      const last = coords[coords.length-1];
+      runningState.distance += haversine(last.lat, last.lng, lat, lng);
+      document.getElementById('run-km').textContent = runningState.distance.toFixed(2);
+    }
+    coords.push({ lat, lng });
+    drawRoute();
+  }, err => {
+    toast('GPS 신호를 찾는 중... 잠시만 기다려주세요');
+  }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
+}
+
+async function stopRun() {
+  clearInterval(runningState.timer);
+  navigator.geolocation.clearWatch(runningState.watchId);
+  const km = parseFloat(runningState.distance.toFixed(2));
+  if (km < 0.01) { toast('거리가 너무 짧아요'); resetRunUI(); return; }
+  const m = Math.floor(runningState.seconds/60);
+  const s = runningState.seconds % 60;
+  const entry = {
+    km, date: toDateStr(new Date()),
+    duration: `${m}분 ${s}초`,
+    coords: runningState.coords.slice(0, 200),
+    ts: Date.now()
+  };
+  if (window._fb && window._fb.ready()) {
+    await fbPush(`${currentUser}/runs`, entry);
+  } else {
+    data[currentUser].runs.unshift(entry);
+    saveLocal();
+    renderAll();
+  }
+  toast(`🏃 ${km}km 런닝 완료!`);
+  resetRunUI();
+}
+
+function resetRunUI() {
+  runningState.active = false;
+  document.getElementById('btn-run-start').style.display = 'flex';
+  document.getElementById('btn-run-stop').style.display = 'none';
+  document.getElementById('map-placeholder').style.display = 'flex';
+  document.getElementById('run-km').textContent = '0.00';
+  document.getElementById('run-time').textContent = '00:00';
+  document.getElementById('run-pace').textContent = '--';
+  const canvas = document.getElementById('runCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+async function saveRunManual() {
+  const km = parseFloat(document.getElementById('run-input-km').value);
+  const min = parseInt(document.getElementById('run-input-min').value) || 0;
+  if (!km || km <= 0) { toast('거리를 입력해주세요'); return; }
+  const entry = { km, date: toDateStr(new Date()), duration: min ? `${min}분` : '--', ts: Date.now() };
+  if (window._fb && window._fb.ready()) {
+    await fbPush(`${currentUser}/runs`, entry);
+  } else {
+    data[currentUser].runs.unshift(entry);
+    saveLocal();
+    renderAll();
+  }
+  document.getElementById('run-input-km').value = '';
+  document.getElementById('run-input-min').value = '';
+  toast('런닝 기록 완료! 🏃');
+}
+
+async function deleteRun(key) {
+  if (window._fb && window._fb.ready()) {
+    await fbRemove(`${currentUser}/runs/${key}`);
+  } else {
+    data[currentUser].runs = data[currentUser].runs.filter(r => (r._key||r.ts) != key);
+    saveLocal();
+    renderAll();
+  }
+}
+
+// ─── DIET ─────────────────────────────────────────────────
+async function saveDiet() {
+  const text = document.getElementById('diet-input').value.trim();
+  const meal = document.getElementById('meal-type').value;
+  if (!text) { toast('음식을 입력해주세요'); return; }
+  const now = new Date();
+  const entry = { text, meal, date: toDateStr(now), time: toTimeStr(now), ts: Date.now() };
+  if (window._fb && window._fb.ready()) {
+    await fbPush(`${currentUser}/diets`, entry);
+  } else {
+    data[currentUser].diets.unshift(entry);
+    saveLocal();
+    renderAll();
+  }
+  document.getElementById('diet-input').value = '';
+  toast('식단 기록 완료! 🥗');
+}
+
+async function deleteDiet(key) {
+  if (window._fb && window._fb.ready()) {
+    await fbRemove(`${currentUser}/diets/${key}`);
+  } else {
+    data[currentUser].diets = data[currentUser].diets.filter(d => (d._key||d.ts) != key);
+    saveLocal();
+    renderAll();
+  }
+}
+
+// ─── GPS / DRAW ───────────────────────────────────────────
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function drawRoute() {
+  const coords = runningState.coords;
+  if (coords.length < 2) return;
+  const canvas = document.getElementById('runCanvas');
+  const mapEl = document.getElementById('map');
+  canvas.width = mapEl.offsetWidth;
+  canvas.height = mapEl.offsetHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Background
+  ctx.fillStyle = '#1a2a1a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const lats = coords.map(c=>c.lat), lngs = coords.map(c=>c.lng);
+  const minLat=Math.min(...lats), maxLat=Math.max(...lats);
+  const minLng=Math.min(...lngs), maxLng=Math.max(...lngs);
+  const pad = 30;
+  const scaleX = (canvas.width-pad*2) / (maxLng-minLng||0.0001);
+  const scaleY = (canvas.height-pad*2) / (maxLat-minLat||0.0001);
+  const scale = Math.min(scaleX, scaleY);
+
+  const toX = lng => pad + (lng-minLng)*scale + (canvas.width-pad*2-(maxLng-minLng)*scale)/2;
+  const toY = lat => canvas.height-pad - (lat-minLat)*scale - (canvas.height-pad*2-(maxLat-minLat)*scale)/2;
+
+  // Trail
+  ctx.beginPath();
+  ctx.moveTo(toX(coords[0].lng), toY(coords[0].lat));
+  coords.forEach(c => ctx.lineTo(toX(c.lng), toY(c.lat)));
+  ctx.strokeStyle = COLOR[currentUser];
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Start dot
+  ctx.beginPath();
+  ctx.arc(toX(coords[0].lng), toY(coords[0].lat), 6, 0, Math.PI*2);
+  ctx.fillStyle = '#4CAF50';
+  ctx.fill();
+
+  // Current dot
+  const last = coords[coords.length-1];
+  ctx.beginPath();
+  ctx.arc(toX(last.lng), toY(last.lat), 8, 0, Math.PI*2);
+  ctx.fillStyle = COLOR[currentUser];
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+// ─── UTILS ────────────────────────────────────────────────
+function toDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function toTimeStr(d) {
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
