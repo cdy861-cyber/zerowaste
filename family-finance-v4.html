@@ -188,8 +188,6 @@ select.form-input{-webkit-appearance:none;appearance:none;}
   <button class="nav-btn" onclick="showPage('loan')" id="nav-loan"><span class="nav-icon">🏦</span>대출</button>
   <button class="nav-btn" onclick="showPage('subscription')" id="nav-subscription"><span class="nav-icon">🏠</span>청약</button>
   <button class="nav-btn" onclick="showPage('savings')" id="nav-savings"><span class="nav-icon">💰</span>저축</button>
-  <button class="nav-btn" onclick="showPage('subscription')" id="nav-subscription"><span class="nav-icon">🏠</span>청약</button>
-  <button class="nav-btn" onclick="showPage('savings')" id="nav-savings"><span class="nav-icon">💰</span>저축</button>
 </nav>
 
 <!-- ══════════════════════════════════
@@ -351,7 +349,7 @@ select.form-input{-webkit-appearance:none;appearance:none;}
 </div>
 
 <!-- 청약 탭 -->
-<div class="page" id="page-subscription" style="display:none">
+<div class="page" id="page-subscription">
   <!-- 청약통장 섹션 -->
   <div class="scard" style="margin-bottom:12px">
     <div class="scard-bd" style="padding:14px 16px">
@@ -411,7 +409,7 @@ select.form-input{-webkit-appearance:none;appearance:none;}
 </div>
 
 <!-- 저축 탭 -->
-<div class="page" id="page-savings" style="display:none">
+<div class="page" id="page-savings">
   <!-- 공동 저축 -->
   <div class="scard" style="margin-bottom:12px">
     <div class="scard-bd" style="padding:14px 16px">
@@ -691,6 +689,8 @@ window.showPage=function(id){
   if(id==='usage')loadAndRenderUsage();
   if(id==='stock'){loadStocks().then(renderStockList);}
   if(id==='loan'){loadLoans().then(renderLoanList);}
+  if(id==='subscription'){renderSubSchedules();renderPublicAccount();}
+  if(id==='savings'){renderSavings();}
 };
 
 // ══════════════════════════════════
