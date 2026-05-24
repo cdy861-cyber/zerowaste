@@ -1538,3 +1538,43 @@ renderPublicAccount();
 
 </script>
 
+<!-- 청약 일정 모달 -->
+<div class="modal-overlay" id="modal-sub-schedule">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📅 청약 일정 추가</div>
+    <div class="form-group"><label class="form-label">단지명</label><input class="form-input" id="sub_sch_name" placeholder="예: 광교 자연앤어반포레"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">지역</label>
+        <select class="form-input" id="sub_sch_region"><option>서울</option><option>경기</option><option>인천</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">유형</label>
+        <select class="form-input" id="sub_sch_type"><option>민영</option><option>공공</option><option>LH</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">청약 접수일</label><input class="form-input" type="date" id="sub_sch_apply_date"></div>
+      <div class="form-group"><label class="form-label">당첨 발표일</label><input class="form-input" type="date" id="sub_sch_result_date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">메모</label><input class="form-input" id="sub_sch_memo" placeholder="예: 59㎡ 가점 60점이상"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-gold btn-full" onclick="saveSubSchedule()">저장</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-sub-schedule')">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 저축 입금 모달 -->
+<div class="modal-overlay" id="modal-saving">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="savingModalTitle">💰 저축 입금</div>
+    <div class="form-group"><label class="form-label">입금일</label><input class="form-input" type="date" id="sv_date"></div>
+    <div class="form-group"><label class="form-label">금액 (원)</label><input class="form-input" type="number" id="sv_amount" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">메모</label><input class="form-input" id="sv_memo" placeholder="예: 2025년 1월 저축"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-gold btn-full" onclick="saveSaving()">저장</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-saving')">취소</button>
+    </div>
+  </div>
+</div>
