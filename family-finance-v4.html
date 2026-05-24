@@ -27,7 +27,7 @@ body{font-family:'Gowun Dodum',sans-serif;background:var(--cream);color:var(--te
 
 /* BOTTOM NAV */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--deep);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom);}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 2px 8px;font-size:8.5px;color:rgba(255,255,255,0.45);cursor:pointer;border:none;background:none;gap:3px;letter-spacing:0.3px;transition:color 0.2s;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 1px 6px;font-size:7.5px;color:rgba(255,255,255,0.45);cursor:pointer;border:none;background:none;gap:3px;letter-spacing:0.3px;transition:color 0.2s;}
 .nav-btn.active{color:var(--gold);}
 .nav-icon{font-size:18px;}
 
@@ -186,6 +186,10 @@ select.form-input{-webkit-appearance:none;appearance:none;}
   <button class="nav-btn" onclick="showPage('usage')" id="nav-usage"><span class="nav-icon">📝</span>사용내역</button>
   <button class="nav-btn" onclick="showPage('stock')" id="nav-stock"><span class="nav-icon">📈</span>주식</button>
   <button class="nav-btn" onclick="showPage('loan')" id="nav-loan"><span class="nav-icon">🏦</span>대출</button>
+  <button class="nav-btn" onclick="showPage('subscription')" id="nav-subscription"><span class="nav-icon">🏠</span>청약</button>
+  <button class="nav-btn" onclick="showPage('savings')" id="nav-savings"><span class="nav-icon">💰</span>저축</button>
+  <button class="nav-btn" onclick="showPage('subscription')" id="nav-subscription"><span class="nav-icon">🏠</span>청약</button>
+  <button class="nav-btn" onclick="showPage('savings')" id="nav-savings"><span class="nav-icon">💰</span>저축</button>
 </nav>
 
 <!-- ══════════════════════════════════
@@ -344,6 +348,95 @@ select.form-input{-webkit-appearance:none;appearance:none;}
     </div>
   </div>
   <div id="loanList"><div class="loading"><div class="spinner"></div>불러오는 중...</div></div>
+</div>
+
+<!-- 청약 탭 -->
+<div class="page" id="page-subscription" style="display:none">
+  <!-- 청약통장 섹션 -->
+  <div class="scard" style="margin-bottom:12px">
+    <div class="scard-bd" style="padding:14px 16px">
+      <div style="font-weight:700;font-size:13px;margin-bottom:12px">🏠 민영통장 (가점)</div>
+      <div class="form-group">
+        <label class="form-label">무주택 기간 (년)</label>
+        <input class="form-input" type="number" id="sub_homeless_years" placeholder="0" min="0" max="15">
+      </div>
+      <div class="form-group">
+        <label class="form-label">부양가족 수 (명)</label>
+        <input class="form-input" type="number" id="sub_family_count" placeholder="0" min="0" max="6">
+      </div>
+      <div class="form-group">
+        <label class="form-label">청약통장 가입기간 (년)</label>
+        <input class="form-input" type="number" id="sub_account_years" placeholder="0" min="0" max="15">
+      </div>
+      <button class="btn btn-gold btn-full" style="margin-top:8px" onclick="calcSubscriptionScore()">🧮 가점 계산</button>
+      <div id="sub_score_result" style="margin-top:10px;text-align:center;font-size:13px;font-weight:700;color:var(--navy)"></div>
+    </div>
+  </div>
+
+  <div class="scard" style="margin-bottom:12px">
+    <div class="scard-bd" style="padding:14px 16px">
+      <div style="font-weight:700;font-size:13px;margin-bottom:12px">🏦 공공통장 (납입금액)</div>
+      <div class="form-group">
+        <label class="form-label">현재 인정된 납입금액 (원)</label>
+        <input class="form-input" type="number" id="sub_public_base" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">기준 날짜</label>
+        <input class="form-input" type="date" id="sub_public_base_date">
+      </div>
+      <button class="btn btn-gold btn-full" style="margin-top:8px" onclick="savePublicAccount()">💾 저장</button>
+      <div id="sub_public_result" style="margin-top:10px;padding:10px;background:var(--cream);border-radius:10px;font-size:12px;line-height:1.6"></div>
+    </div>
+  </div>
+
+  <!-- 청약 사이트 링크 -->
+  <div class="scard" style="margin-bottom:12px">
+    <div class="scard-bd" style="padding:14px 16px">
+      <div style="font-weight:700;font-size:13px;margin-bottom:10px">🔗 청약 사이트</div>
+      <a href="https://www.applyhome.co.kr" target="_blank" class="btn btn-navy btn-full" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">🏠 청약홈 (APT, 주택)</a>
+      <a href="https://apply.lh.or.kr" target="_blank" class="btn btn-outline btn-full" style="display:block;text-align:center;text-decoration:none">🏢 LH 청약센터</a>
+    </div>
+  </div>
+
+  <!-- 청약 일정 캘린더 -->
+  <div class="scard" style="margin-bottom:12px">
+    <div class="scard-bd" style="padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-weight:700;font-size:13px">📅 청약 일정 (경기·인천·서울)</div>
+        <button class="btn btn-sm btn-outline" onclick="openSubScheduleModal()">+ 추가</button>
+      </div>
+      <div id="sub_schedule_list"><div style="text-align:center;color:var(--text-sub);font-size:12px;padding:16px">등록된 일정이 없습니다</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 저축 탭 -->
+<div class="page" id="page-savings" style="display:none">
+  <!-- 공동 저축 -->
+  <div class="scard" style="margin-bottom:12px">
+    <div class="scard-bd" style="padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-weight:700;font-size:13px">🤝 공동 저축</div>
+        <button class="btn btn-sm btn-gold" onclick="openSavingModal('공동')">+ 입금</button>
+      </div>
+      <div style="font-size:10px;color:var(--text-sub);margin-bottom:4px">총 저축액</div>
+      <div style="font-family:'Nanum Myeongjo',serif;font-size:22px;font-weight:800;color:var(--navy)" id="saving_total_공동">-</div>
+      <div id="saving_list_공동" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- 유준 저축 -->
+  <div class="scard" style="margin-bottom:12px">
+    <div class="scard-bd" style="padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-weight:700;font-size:13px">🌟 유준 저축</div>
+        <button class="btn btn-sm btn-gold" onclick="openSavingModal('유준')">+ 입금</button>
+      </div>
+      <div style="font-size:10px;color:var(--text-sub);margin-bottom:4px">총 저축액</div>
+      <div style="font-family:'Nanum Myeongjo',serif;font-size:22px;font-weight:800;color:var(--navy)" id="saving_total_유준">-</div>
+      <div id="saving_list_유준" style="margin-top:10px"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════ MODALS ══════════════ -->
@@ -1256,5 +1349,192 @@ init();
 document.querySelectorAll('.modal-overlay').forEach(el=>{
   el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});
 });
+
+// ══════════════════════════════════
+// 🏠 청약 기능
+// ══════════════════════════════════
+window.calcSubscriptionScore = function() {
+  const homeless = Math.min(Number($('sub_homeless_years').value)||0, 15);
+  const family = Math.min(Number($('sub_family_count').value)||0, 6);
+  const account = Math.min(Number($('sub_account_years').value)||0, 15);
+
+  // 무주택 기간 점수 (최대 32점)
+  const homelessScore = [2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32][homeless];
+  // 부양가족 점수 (최대 35점: 0명=5, +5씩)
+  const familyScore = Math.min(family * 5 + 5, 35);
+  // 가입기간 점수 (최대 17점)
+  const accountScore = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17][Math.min(account, 15)];
+
+  const total = homelessScore + familyScore + accountScore;
+  $('sub_score_result').innerHTML = `
+    <div style="background:var(--gold-light);border-radius:10px;padding:12px">
+      <div style="font-size:11px;color:var(--text-sub);margin-bottom:6px">
+        무주택 ${homelessScore}점 + 부양가족 ${familyScore}점 + 가입기간 ${accountScore}점
+      </div>
+      <div style="font-size:24px;color:var(--gold)">총 ${total}점</div>
+      <div style="font-size:10px;color:var(--text-sub);margin-top:4px">최고 84점 기준</div>
+    </div>`;
+};
+
+window.savePublicAccount = function() {
+  const base = Number($('sub_public_base').value)||0;
+  const baseDate = $('sub_public_base_date').value;
+  if (!baseDate) { toast('기준 날짜를 입력해주세요'); return; }
+  localStorage.setItem('sub_public_base', base);
+  localStorage.setItem('sub_public_base_date', baseDate);
+  renderPublicAccount();
+  toast('저장되었습니다 ✅');
+};
+
+function renderPublicAccount() {
+  const base = Number(localStorage.getItem('sub_public_base'))||0;
+  const baseDate = localStorage.getItem('sub_public_base_date')||'';
+  if (!baseDate) { $('sub_public_result').innerHTML=''; return; }
+
+  const baseDt = new Date(baseDate);
+  const now = new Date();
+  // 매달 17일에 25만원씩 증가
+  let months = 0;
+  let d = new Date(baseDt);
+  while (true) {
+    let next = new Date(d);
+    next.setMonth(next.getMonth()+1);
+    // 다음 달 17일 기준
+    let addDate = new Date(d.getFullYear(), d.getMonth()+1, 17);
+    if (addDate > now) break;
+    months++;
+    d = next;
+  }
+  const added = months * 250000;
+  const total = base + added;
+  const nextDate = new Date(d.getFullYear(), d.getMonth()+1, 17);
+  $('sub_public_result').innerHTML = `
+    <div style="font-weight:700;color:var(--navy);margin-bottom:4px">현재 인정 납입금액</div>
+    <div style="font-size:18px;font-weight:800;color:var(--gold);font-family:'Nanum Myeongjo',serif">${fmt(total)}원</div>
+    <div style="margin-top:6px;color:var(--text-sub)">기준일 납입: ${fmt(base)}원<br>추가 인정 (${months}회 × 25만원): ${fmt(added)}원<br>다음 인정일: ${nextDate.toLocaleDateString('ko-KR')}</div>`;
+
+  // 입력칸도 업데이트
+  $('sub_public_base').value = base;
+  $('sub_public_base_date').value = baseDate;
+}
+
+let subSchedules = JSON.parse(localStorage.getItem('sub_schedules')||'[]');
+
+window.openSubScheduleModal = function() {
+  ['sub_sch_name','sub_sch_memo'].forEach(id=>$(id).value='');
+  ['sub_sch_apply_date','sub_sch_result_date'].forEach(id=>$(id).value='');
+  openModal('modal-sub-schedule');
+};
+
+window.saveSubSchedule = function() {
+  const name = $('sub_sch_name').value.trim();
+  if (!name) { toast('단지명을 입력해주세요'); return; }
+  const item = {
+    id: Date.now(),
+    name,
+    region: $('sub_sch_region').value,
+    type: $('sub_sch_type').value,
+    applyDate: $('sub_sch_apply_date').value,
+    resultDate: $('sub_sch_result_date').value,
+    memo: $('sub_sch_memo').value,
+  };
+  subSchedules.push(item);
+  subSchedules.sort((a,b)=>a.applyDate.localeCompare(b.applyDate));
+  localStorage.setItem('sub_schedules', JSON.stringify(subSchedules));
+  renderSubSchedules();
+  closeModal('modal-sub-schedule');
+  toast('일정이 추가되었습니다 📅');
+};
+
+window.deleteSubSchedule = function(id) {
+  if (!confirm('삭제할까요?')) return;
+  subSchedules = subSchedules.filter(x=>x.id!==id);
+  localStorage.setItem('sub_schedules', JSON.stringify(subSchedules));
+  renderSubSchedules();
+};
+
+function renderSubSchedules() {
+  const el = $('sub_schedule_list');
+  if (!subSchedules.length) { el.innerHTML='<div style="text-align:center;color:var(--text-sub);font-size:12px;padding:16px">등록된 일정이 없습니다</div>'; return; }
+  const regionColor = {서울:'var(--rose)',경기:'var(--navy)',인천:'var(--sage)'};
+  el.innerHTML = subSchedules.map(s=>`
+    <div style="border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <span style="font-weight:700;font-size:13px">${s.name}</span>
+          <span class="badge" style="background:${regionColor[s.region]||'var(--brown)'};color:#fff;margin-left:4px">${s.region}</span>
+          <span class="badge badge-navy" style="margin-left:2px">${s.type}</span>
+        </div>
+        <button class="btn btn-sm" style="background:var(--rose-light);color:var(--rose);border:none;border-radius:6px;cursor:pointer;padding:3px 8px;font-size:10px" onclick="deleteSubSchedule(${s.id})">삭제</button>
+      </div>
+      ${s.applyDate?`<div style="font-size:11px;color:var(--text-sub);margin-top:4px">📌 접수: ${s.applyDate}${s.resultDate?' · 발표: '+s.resultDate:''}</div>`:''}
+      ${s.memo?`<div style="font-size:11px;color:var(--text-sub);margin-top:2px">💬 ${s.memo}</div>`:''}
+    </div>`).join('');
+}
+
+// ══════════════════════════════════
+// 💰 저축 기능
+// ══════════════════════════════════
+let currentSavingGroup = '공동';
+let savings = JSON.parse(localStorage.getItem('savings_data')||'{"공동":[],"유준":[]}');
+
+window.openSavingModal = function(group) {
+  currentSavingGroup = group;
+  $('savingModalTitle').textContent = (group==='공동'?'🤝':'🌟') + ' ' + group + ' 저축 입금';
+  $('sv_date').value = new Date().toISOString().slice(0,10);
+  $('sv_amount').value = '';
+  $('sv_memo').value = '';
+  openModal('modal-saving');
+};
+
+window.saveSaving = function() {
+  const amount = Number($('sv_amount').value)||0;
+  const date = $('sv_date').value;
+  if (!amount || !date) { toast('날짜와 금액을 입력해주세요'); return; }
+  if (!savings[currentSavingGroup]) savings[currentSavingGroup]=[];
+  savings[currentSavingGroup].push({id:Date.now(), date, amount, memo:$('sv_memo').value});
+  savings[currentSavingGroup].sort((a,b)=>b.date.localeCompare(a.date));
+  localStorage.setItem('savings_data', JSON.stringify(savings));
+  renderSavings();
+  closeModal('modal-saving');
+  toast('저축 내역이 저장되었습니다 💰');
+};
+
+window.deleteSaving = function(group, id) {
+  if (!confirm('삭제할까요?')) return;
+  savings[group] = savings[group].filter(x=>x.id!==id);
+  localStorage.setItem('savings_data', JSON.stringify(savings));
+  renderSavings();
+};
+
+function renderSavings() {
+  ['공동','유준'].forEach(group=>{
+    const list = savings[group]||[];
+    const total = list.reduce((s,x)=>s+x.amount,0);
+    const totalEl = $('saving_total_'+group);
+    const listEl = $('saving_list_'+group);
+    if(totalEl) totalEl.textContent = fmt(total)+'원';
+    if(listEl) {
+      if(!list.length) { listEl.innerHTML='<div style="text-align:center;color:var(--text-sub);font-size:12px;padding:8px">입금 내역이 없습니다</div>'; return; }
+      listEl.innerHTML = list.map(x=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <div>
+            <div style="font-weight:600">${x.date}</div>
+            ${x.memo?`<div style="color:var(--text-sub);font-size:11px">${x.memo}</div>`:''}
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-weight:700;color:var(--navy)">${fmt(x.amount)}원</div>
+            <button onclick="deleteSaving('${group}',${x.id})" style="background:none;border:none;color:var(--rose);cursor:pointer;font-size:12px">✕</button>
+          </div>
+        </div>`).join('');
+    }
+  });
+}
+
+// 청약·저축 초기화
+renderSubSchedules();
+renderSavings();
+renderPublicAccount();
+
 </script>
 
