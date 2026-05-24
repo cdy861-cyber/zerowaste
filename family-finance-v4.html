@@ -689,8 +689,8 @@ window.showPage=function(id){
   if(id==='usage')loadAndRenderUsage();
   if(id==='stock'){loadStocks().then(renderStockList);}
   if(id==='loan'){loadLoans().then(renderLoanList);}
-  if(id==='subscription'){renderSubSchedules();renderPublicAccount();}
-  if(id==='savings'){renderSavings();}
+  if(id==='subscription'){loadSubSchedules().then(()=>{renderSubSchedules();});loadPublicAccount().then(()=>{renderPublicAccount();});}
+  if(id==='savings'){loadSavings().then(renderSavings);}
 };
 
 // ══════════════════════════════════
@@ -1376,34 +1376,38 @@ window.calcSubscriptionScore = function() {
     </div>`;
 };
 
-window.savePublicAccount = function() {
+window.savePublicAccount = async function() {
   const base = Number($('sub_public_base').value)||0;
   const baseDate = $('sub_public_base_date').value;
   if (!baseDate) { toast('기준 날짜를 입력해주세요'); return; }
-  localStorage.setItem('sub_public_base', base);
-  localStorage.setItem('sub_public_base_date', baseDate);
+  await setDoc(doc(db,'settings','publicAccount'),{base, baseDate});
   renderPublicAccount();
   toast('저장되었습니다 ✅');
 };
 
+async function loadPublicAccount(){
+  const d=await getDoc(doc(db,'settings','publicAccount'));
+  if(d.exists()){
+    const data=d.data();
+    $('sub_public_base').value=data.base||0;
+    $('sub_public_base_date').value=data.baseDate||'';
+  }
+}
+
 function renderPublicAccount() {
-  const base = Number(localStorage.getItem('sub_public_base'))||0;
-  const baseDate = localStorage.getItem('sub_public_base_date')||'';
+  const base = Number($('sub_public_base').value)||0;
+  const baseDate = $('sub_public_base_date').value||'';
   if (!baseDate) { $('sub_public_result').innerHTML=''; return; }
 
   const baseDt = new Date(baseDate);
   const now = new Date();
-  // 매달 17일에 25만원씩 증가
   let months = 0;
   let d = new Date(baseDt);
   while (true) {
-    let next = new Date(d);
-    next.setMonth(next.getMonth()+1);
-    // 다음 달 17일 기준
     let addDate = new Date(d.getFullYear(), d.getMonth()+1, 17);
     if (addDate > now) break;
     months++;
-    d = next;
+    d = new Date(d.getFullYear(), d.getMonth()+1, d.getDate());
   }
   const added = months * 250000;
   const total = base + added;
@@ -1412,13 +1416,15 @@ function renderPublicAccount() {
     <div style="font-weight:700;color:var(--navy);margin-bottom:4px">현재 인정 납입금액</div>
     <div style="font-size:18px;font-weight:800;color:var(--gold);font-family:'Nanum Myeongjo',serif">${fmt(total)}원</div>
     <div style="margin-top:6px;color:var(--text-sub)">기준일 납입: ${fmt(base)}원<br>추가 인정 (${months}회 × 25만원): ${fmt(added)}원<br>다음 인정일: ${nextDate.toLocaleDateString('ko-KR')}</div>`;
-
-  // 입력칸도 업데이트
-  $('sub_public_base').value = base;
-  $('sub_public_base_date').value = baseDate;
 }
 
-let subSchedules = JSON.parse(localStorage.getItem('sub_schedules')||'[]');
+let subSchedules = [];
+async function loadSubSchedules(){
+  const snap=await getDocs(collection(db,'subSchedules'));
+  subSchedules=[];
+  snap.forEach(d=>subSchedules.push({id:d.id,...d.data()}));
+  subSchedules.sort((a,b)=>(a.applyDate||'').localeCompare(b.applyDate||''));
+}
 
 window.openSubScheduleModal = function() {
   ['sub_sch_name','sub_sch_memo'].forEach(id=>$(id).value='');
@@ -1426,30 +1432,29 @@ window.openSubScheduleModal = function() {
   openModal('modal-sub-schedule');
 };
 
-window.saveSubSchedule = function() {
+window.saveSubSchedule = async function() {
   const name = $('sub_sch_name').value.trim();
   if (!name) { toast('단지명을 입력해주세요'); return; }
   const item = {
-    id: Date.now(),
     name,
     region: $('sub_sch_region').value,
     type: $('sub_sch_type').value,
     applyDate: $('sub_sch_apply_date').value,
     resultDate: $('sub_sch_result_date').value,
     memo: $('sub_sch_memo').value,
+    createdAt: serverTimestamp()
   };
-  subSchedules.push(item);
-  subSchedules.sort((a,b)=>a.applyDate.localeCompare(b.applyDate));
-  localStorage.setItem('sub_schedules', JSON.stringify(subSchedules));
+  await addDoc(collection(db,'subSchedules'), item);
+  await loadSubSchedules();
   renderSubSchedules();
   closeModal('modal-sub-schedule');
   toast('일정이 추가되었습니다 📅');
 };
 
-window.deleteSubSchedule = function(id) {
+window.deleteSubSchedule = async function(id) {
   if (!confirm('삭제할까요?')) return;
-  subSchedules = subSchedules.filter(x=>x.id!==id);
-  localStorage.setItem('sub_schedules', JSON.stringify(subSchedules));
+  await deleteDoc(doc(db,'subSchedules',id));
+  await loadSubSchedules();
   renderSubSchedules();
 };
 
@@ -1476,7 +1481,16 @@ function renderSubSchedules() {
 // 💰 저축 기능
 // ══════════════════════════════════
 let currentSavingGroup = '공동';
-let savings = JSON.parse(localStorage.getItem('savings_data')||'{"공동":[],"유준":[]}');
+let savings = {'공동':[],'유준':[]};
+
+async function loadSavings(){
+  const snap=await getDocs(query(collection(db,'savings'),orderBy('date','desc')));
+  savings={'공동':[],'유준':[]};
+  snap.forEach(d=>{
+    const s={id:d.id,...d.data()};
+    if(savings[s.group]) savings[s.group].push(s);
+  });
+}
 
 window.openSavingModal = function(group) {
   currentSavingGroup = group;
@@ -1487,29 +1501,27 @@ window.openSavingModal = function(group) {
   openModal('modal-saving');
 };
 
-window.saveSaving = function() {
+window.saveSaving = async function() {
   const amount = Number($('sv_amount').value)||0;
   const date = $('sv_date').value;
   if (!amount || !date) { toast('날짜와 금액을 입력해주세요'); return; }
-  if (!savings[currentSavingGroup]) savings[currentSavingGroup]=[];
-  savings[currentSavingGroup].push({id:Date.now(), date, amount, memo:$('sv_memo').value});
-  savings[currentSavingGroup].sort((a,b)=>b.date.localeCompare(a.date));
-  localStorage.setItem('savings_data', JSON.stringify(savings));
+  await addDoc(collection(db,'savings'),{group:currentSavingGroup, date, amount, memo:$('sv_memo').value, createdAt:serverTimestamp()});
+  await loadSavings();
   renderSavings();
   closeModal('modal-saving');
   toast('저축 내역이 저장되었습니다 💰');
 };
 
-window.deleteSaving = function(group, id) {
+window.deleteSaving = async function(id) {
   if (!confirm('삭제할까요?')) return;
-  savings[group] = savings[group].filter(x=>x.id!==id);
-  localStorage.setItem('savings_data', JSON.stringify(savings));
+  await deleteDoc(doc(db,'savings',id));
+  await loadSavings();
   renderSavings();
 };
 
 function renderSavings() {
   ['공동','유준'].forEach(group=>{
-    const list = savings[group]||[];
+    const list = (savings[group]||[]).sort((a,b)=>b.date.localeCompare(a.date));
     const total = list.reduce((s,x)=>s+x.amount,0);
     const totalEl = $('saving_total_'+group);
     const listEl = $('saving_list_'+group);
@@ -1524,7 +1536,7 @@ function renderSavings() {
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <div style="font-weight:700;color:var(--navy)">${fmt(x.amount)}원</div>
-            <button onclick="deleteSaving('${group}',${x.id})" style="background:none;border:none;color:var(--rose);cursor:pointer;font-size:12px">✕</button>
+            <button onclick="deleteSaving('${x.id}')" style="background:none;border:none;color:var(--rose);cursor:pointer;font-size:12px">✕</button>
           </div>
         </div>`).join('');
     }
@@ -1532,9 +1544,14 @@ function renderSavings() {
 }
 
 // 청약·저축 초기화
-renderSubSchedules();
-renderSavings();
-renderPublicAccount();
+(async()=>{
+  await loadSubSchedules();
+  await loadSavings();
+  await loadPublicAccount();
+  renderSubSchedules();
+  renderSavings();
+  renderPublicAccount();
+})();
 
 </script>
 
