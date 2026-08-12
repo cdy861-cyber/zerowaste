@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>우리집 냉장고</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ✅ 여기에 Firebase 설정 붙여넣기
+  const firebaseConfig = {
+    apiKey: // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyC1VelhaJqL8HzmSjRzbenjN8R-kwz-Yfc",
+  authDomain: "health-fba6a.firebaseapp.com",
+  databaseURL: "https://health-fba6a-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "health-fba6a",
+  storageBucket: "health-fba6a.firebasestorage.app",
+  messagingSenderId: "215200638400",
+  appId: "1:215200638400:web:ce9a0d0917667ffd9e9425",
+  measurementId: "G-SHMJ8X0M0Y"
+};
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  let db;
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+  } catch(e) { console.warn(e); }
+  window._fb = { db, ref, set, push, onValue, remove, ready: () => !!db && !firebaseConfig.apiKey.includes('YOUR_') };
+</script>
+
+<style>
+:root {
+  --bg:#0F1117; --surface:#1C1E2A; --surface2:#252836; --surface3:#2E3147;
+  --border:#333650; --text:#F0F2FF; --text2:#8890B0;
+  --fridge:#4FC3F7; --freezer:#7C83FF;
+  --ok:#4CAF50; --warn:#FF9800; --danger:#FF5252;
+  --tab:var(--fridge); --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;max-width:480px;margin:0 auto}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .5s}
+.splash-icon{font-size:72px;animation:float 2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.splash-title{font-family:'Oswald',sans-serif;font-size:36px;font-weight:700;letter-spacing:2px}
+.splash-title span{color:var(--fridge)}
+.splash-sub{color:var(--text2);font-size:14px}
+#splash.hidden{opacity:0;pointer-events:none}
+
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:100}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0 0}
+.app-logo{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;display:flex;align-items:center;gap:8px}
+.app-logo span{color:var(--tab);transition:color .3s}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#555;transition:background .3s}
+.sync-dot.live{background:var(--ok);box-shadow:0 0 6px var(--ok);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* TABS */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:12px}
+.tab{padding:10px;text-align:center;font-size:15px;font-weight:700;cursor:pointer;color:var(--text2);border-radius:10px 10px 0 0;position:relative;transition:color .2s}
+.tab.active.fridge{color:var(--fridge)}
+.tab.active.freezer{color:var(--freezer)}
+.tab::after{content:'';position:absolute;bottom:0;left:10%;right:10%;height:3px;border-radius:3px 3px 0 0;background:transparent;transition:background .2s}
+.tab.active.fridge::after{background:var(--fridge)}
+.tab.active.freezer::after{background:var(--freezer)}
+
+/* MAIN */
+main{padding:16px;padding-bottom:100px}
+
+/* SUMMARY */
+.summary-bar{background:var(--surface);border-radius:var(--radius);padding:14px 18px;display:flex;margin-bottom:14px;border:1px solid var(--border)}
+.summary-item{flex:1;text-align:center}
+.summary-item+.summary-item{border-left:1px solid var(--border)}
+.summary-val{font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;color:var(--tab)}
+.summary-lbl{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:14px}
+.search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px 12px 42px;color:var(--text);font-size:14px;outline:none;font-family:'Noto Sans KR',sans-serif}
+.search-input:focus{border-color:var(--tab)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:17px;pointer-events:none}
+
+/* CATEGORY */
+.category-block{margin-bottom:10px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+.category-header{background:var(--surface);padding:14px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.category-emoji{font-size:22px;flex-shrink:0}
+.category-name{font-size:15px;font-weight:700;flex:1}
+.exp-alert{font-size:11px;padding:2px 8px;border-radius:99px;font-weight:700}
+.alert-warn{background:#3A2A0F;color:var(--warn)}
+.alert-danger{background:#3A0F0F;color:var(--danger)}
+.category-count{font-size:12px;color:var(--text2);background:var(--surface2);padding:2px 10px;border-radius:99px;flex-shrink:0}
+.cat-edit-btn{background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:4px 6px;border-radius:8px;transition:background .15s;flex-shrink:0}
+.cat-edit-btn:active{background:var(--surface2)}
+.category-chevron{color:var(--text2);font-size:16px;transition:transform .2s;flex-shrink:0}
+.category-chevron.open{transform:rotate(180deg)}
+.category-body{background:var(--surface2);display:none}
+.category-body.open{display:block}
+
+/* ITEMS */
+.item-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);transition:background .15s}
+.item-row:last-of-type{border-bottom:none}
+.item-row:active{background:var(--surface3)}
+.item-main{flex:1;min-width:0}
+.item-name{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-qty{color:var(--text2);font-size:13px;margin-left:4px}
+.item-meta{font-size:11px;color:var(--text2);margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.exp-badge{padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;flex-shrink:0}
+.exp-ok{background:#1B3A1F;color:var(--ok)}
+.exp-warn{background:#3A2A0F;color:var(--warn)}
+.exp-danger{background:#3A0F0F;color:var(--danger)}
+.exp-expired{background:#2A0808;color:#FF1744}
+.exp-none{background:var(--surface3);color:var(--text2)}
+.item-edit{background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:6px;border-radius:8px;transition:all .15s;flex-shrink:0;line-height:1}
+.item-edit:active{background:var(--surface3)}
+.item-del{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:6px;border-radius:8px;transition:all .15s;flex-shrink:0;line-height:1}
+.item-del:active{background:#3A0F0F;color:var(--danger)}
+
+/* QUICK ADD */
+.quick-add-row{padding:10px 14px;display:flex;gap:8px;background:var(--surface);border-top:1px solid var(--border)}
+.quick-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none}
+.quick-input:focus{border-color:var(--tab)}
+.quick-detail-btn{background:var(--tab);color:#000;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+
+/* FAB */
+.fab{position:fixed;bottom:24px;right:max(24px, calc((100vw - 480px)/2 + 24px));width:58px;height:58px;border-radius:50%;background:var(--tab);border:none;color:#000;font-size:30px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);transition:all .2s;z-index:50;display:flex;align-items:center;justify-content:center}
+.fab:active{transform:scale(.93)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:150;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px 44px;width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.23,1);max-height:90dvh;overflow-y:auto}
+.modal-overlay.show .modal{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px}
+.modal-field{margin-bottom:14px}
+.modal-label{font-size:12px;color:var(--text2);font-weight:700;margin-bottom:6px;letter-spacing:.5px}
+.modal-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--text);font-size:15px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s}
+.modal-input:focus{border-color:var(--tab)}
+.modal-row{display:flex;gap:10px}
+.modal-row .modal-field{flex:1}
+.emoji-picker{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:4px}
+.emoji-btn{aspect-ratio:1;background:var(--surface2);border:2px solid transparent;border-radius:12px;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.emoji-btn.sel{border-color:var(--tab);background:var(--surface3)}
+.modal-btn{width:100%;padding:15px;border-radius:14px;border:none;font-size:16px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s}
+.modal-btn.primary{background:var(--tab);color:#000;margin-top:6px}
+.modal-btn.del{background:#3A0F0F;color:var(--danger);margin-top:10px}
+.modal-btn:active{transform:scale(.97)}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty-state .eicon{font-size:52px;margin-bottom:14px}
+.empty-state p{font-size:14px;line-height:1.7}
+
+/* TOAST */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);padding:12px 24px;border-radius:99px;font-size:14px;z-index:999;transition:all .3s;opacity:0;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-icon">🧊</div>
+  <div class="splash-title">냉장고 <span>LOG</span></div>
+  <div class="splash-sub">우리집 식재료 관리</div>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="app-logo">🧊 <span>냉장고 LOG</span></div>
+    <div class="sync-dot" id="syncDot"></div>
+  </div>
+  <div class="tabs">
+    <div class="tab fridge active" onclick="switchZone('fridge')">❄️ 냉장실</div>
+    <div class="tab freezer" onclick="switchZone('freezer')">🧊 냉동실</div>
+  </div>
+</header>
+
+<main>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" placeholder="식재료 검색..." oninput="renderZone()">
+  </div>
+  <div class="summary-bar">
+    <div class="summary-item"><div class="summary-val" id="sum-total">0</div><div class="summary-lbl">전체</div></div>
+    <div class="summary-item"><div class="summary-val" style="color:var(--warn)" id="sum-warn">0</div><div class="summary-lbl">⚠️ 3일 이내</div></div>
+    <div class="summary-item"><div class="summary-val" style="color:var(--danger)" id="sum-exp">0</div><div class="summary-lbl">🚨 기한 초과</div></div>
+  </div>
+  <div id="zone-content"></div>
+</main>
+
+<button class="fab" onclick="openAddCat()">+</button>
+
+<!-- CATEGORY MODAL -->
+<div class="modal-overlay" id="catModal" onclick="closeCatModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="catModalTitle">카테고리 추가</div>
+    <div class="modal-field">
+      <div class="modal-label">아이콘</div>
+      <div class="emoji-picker" id="emojiPicker"></div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">카테고리 이름</div>
+      <input class="modal-input" id="catName" placeholder="예: 채소, 육류, 음료수, 소스류...">
+    </div>
+    <button class="modal-btn primary" onclick="saveCat()">저장</button>
+    <button class="modal-btn del" id="catDelBtn" style="display:none" onclick="deleteCat()">이 카테고리 삭제</button>
+  </div>
+</div>
+
+<!-- ITEM MODAL -->
+<div class="modal-overlay" id="itemModal" onclick="closeItemModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="itemModalTitle">식재료 추가</div>
+    <div class="modal-field">
+      <div class="modal-label">이름 *</div>
+      <input class="modal-input" id="itemName" placeholder="예: 달걀, 두부, 삼겹살...">
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <div class="modal-label">수량</div>
+        <input class="modal-input" id="itemQty" placeholder="예: 1팩, 500g">
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">입고일</div>
+        <input class="modal-input" type="date" id="itemDate">
+      </div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">유통기한</div>
+      <input class="modal-input" type="date" id="itemExp">
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">메모</div>
+      <input class="modal-input" id="itemNote" placeholder="예: 개봉함, 냉동보관 등">
+    </div>
+    <button class="modal-btn primary" id="itemSaveBtn" onclick="saveItem()">추가하기</button>
+    <button class="modal-btn del" id="itemDelBtn" style="display:none" onclick="delItemFromModal()">이 식재료 삭제</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────
+const EMOJIS = ['🥦','🥕','🧅','🍅','🌽','🥬','🫑','🥒','🍆','🧄','🌶️','🥑',
+  '🍎','🍋','🍇','🍓','🫐','🍑','🥝','🍊','🍌','🍉',
+  '🥩','🍗','🐟','🦐','🥓','🌭',
+  '🥚','🧀','🧈','🥛','🧆',
+  '🍚','🍜','🍞','🥫','🫙','🧂',
+  '🧃','🍺','🧊','📦','⭐','🎯'];
+
+// ─── STATE ───────────────────────────────────────────────
+let zone = 'fridge';
+let dbData = { fridge: {}, freezer: {} };
+let editCatKey = null;
+let addItemCatKey = null;
+let editItemKey = null;
+let selEmoji = '🥦';
+const COLOR = { fridge:'#4FC3F7', freezer:'#7C83FF' };
+const opened = {}; // catKey -> bool
+
+// ─── INIT ─────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  document.getElementById('itemDate').value = toDateStr(new Date());
+  buildEmojiPicker();
+  setTimeout(() => document.getElementById('splash').classList.add('hidden'), 1400);
+  initFB();
+});
+
+function initFB() {
+  const t = setInterval(() => {
+    if (!window._fb) return;
+    clearInterval(t);
+    if (window._fb.ready()) {
+      document.getElementById('syncDot').classList.add('live');
+      ['fridge','freezer'].forEach(z => {
+        window._fb.onValue(window._fb.ref(window._fb.db, z), snap => {
+          dbData[z] = snap.val() || {};
+          renderZone();
+        });
+      });
+    } else {
+      try { const s=localStorage.getItem('fridge');if(s)dbData=JSON.parse(s); }catch(e){}
+      renderZone();
+    }
+  }, 300);
+}
+
+function saveLoc() { try{localStorage.setItem('fridge',JSON.stringify(dbData));}catch(e){} }
+
+async function fbPush(path, val) {
+  if (window._fb?.ready()) {
+    const {db,ref,push,set}=window._fb;
+    const r=push(ref(db,path)); await set(r,val); return r.key;
+  }
+  return 'L'+Date.now();
+}
+async function fbSet(path, val) {
+  if (window._fb?.ready()) { const {db,ref,set}=window._fb; await set(ref(db,path),val); }
+}
+async function fbDel(path) {
+  if (window._fb?.ready()) { const {db,ref,remove}=window._fb; await remove(ref(db,path)); }
+}
+
+// ─── ZONE SWITCH ─────────────────────────────────────────
+function switchZone(z) {
+  zone = z;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.tab.${z}`).classList.add('active');
+  document.documentElement.style.setProperty('--tab', COLOR[z]);
+  renderZone();
+}
+
+// ─── RENDER ──────────────────────────────────────────────
+function renderZone() {
+  const q = (document.getElementById('searchInput').value||'').toLowerCase();
+  const cats = dbData[zone]||{};
+  const catKeys = Object.keys(cats).sort((a,b)=>(cats[a].order||0)-(cats[b].order||0));
+
+  const now = new Date(); now.setHours(0,0,0,0);
+  let totAll=0, totWarn=0, totExp=0;
+
+  if (!catKeys.length && !q) {
+    document.getElementById('zone-content').innerHTML = `
+      <div class="empty-state">
+        <div class="eicon">${zone==='fridge'?'❄️':'🧊'}</div>
+        <p><b>카테고리가 없어요</b><br><br>아래 <b style="color:var(--tab)">＋</b> 버튼을 눌러<br>채소, 육류 등 카테고리를 만들어보세요!</p>
+      </div>`;
+    setSummary(0,0,0); return;
+  }
+
+  let html='';
+  catKeys.forEach(ck => {
+    const cat = cats[ck];
+    const items = cat.items||{};
+    const iKeys = Object.keys(items);
+
+    // Filter
+    const fKeys = q ? iKeys.filter(k=>items[k].name.toLowerCase().includes(q)) : iKeys;
+    if (q && !fKeys.length) return;
+
+    // Sort by expiry
+    fKeys.sort((a,b) => {
+      const ea = items[a].exp ? new Date(items[a].exp) : new Date('9999-12-31');
+      const eb = items[b].exp ? new Date(items[b].exp) : new Date('9999-12-31');
+      return ea-eb;
+    });
+
+    let cWarn=0,cExp=0;
+    fKeys.forEach(k=>{
+      totAll++;
+      if(items[k].exp){
+        const diff=Math.floor((new Date(items[k].exp)-now)/86400000);
+        if(diff<0){cExp++;totExp++;}
+        else if(diff<=3){cWarn++;totWarn++;}
+      }
+    });
+
+    const isOpen = opened[zone+'_'+ck] !== false; // default open
+    const alertBadge = cExp>0
+      ? `<span class="exp-alert alert-danger">🚨${cExp}만료</span>`
+      : cWarn>0 ? `<span class="exp-alert alert-warn">⚠️${cWarn}임박</span>` : '';
+
+    html += `<div class="category-block">
+      <div class="category-header" onclick="toggleCat('${ck}')">
+        <span class="category-emoji">${cat.emoji||'📦'}</span>
+        <span class="category-name">${escHtml(cat.name)}</span>
+        ${alertBadge}
+        <span class="category-count">${fKeys.length}</span>
+        <button class="cat-edit-btn" onclick="event.stopPropagation();openEditCat('${ck}')">✏️</button>
+        <span class="category-chevron ${isOpen?'open':''}">▾</span>
+      </div>
+      <div class="category-body ${isOpen?'open':''}">
+        ${fKeys.length===0
+          ? '<div style="padding:16px;text-align:center;color:var(--text2);font-size:13px">아직 식재료가 없어요</div>'
+          : fKeys.map(k=>renderItem(ck,k,items[k],now)).join('')
+        }
+        <div class="quick-add-row">
+          <input class="quick-input" id="qi_${ck}" placeholder="이름 입력 후 Enter로 빠르게 추가..."
+            onkeydown="if(event.key==='Enter')quickAdd('${ck}')">
+          <button class="quick-detail-btn" onclick="openAddItem('${ck}')">+ 상세</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  if (!html) html = `<div class="empty-state"><div class="eicon">🔍</div><p>"${escHtml(q)}" 검색 결과가 없어요.</p></div>`;
+  document.getElementById('zone-content').innerHTML = html;
+  setSummary(totAll, totWarn, totExp);
+}
+
+function renderItem(ck,ik,item,now) {
+  let badge='';
+  if(item.exp){
+    const diff=Math.floor((new Date(item.exp)-now)/86400000);
+    if(diff<0) badge=`<span class="exp-badge exp-expired">만료 ${Math.abs(diff)}일 초과</span>`;
+    else if(diff===0) badge=`<span class="exp-badge exp-danger">오늘 만료</span>`;
+    else if(diff<=3) badge=`<span class="exp-badge exp-warn">${diff}일 남음</span>`;
+    else badge=`<span class="exp-badge exp-ok">${diff}일 남음</span>`;
+  } else {
+    badge=`<span class="exp-badge exp-none">기한 없음</span>`;
+  }
+  return `<div class="item-row">
+    <div class="item-main" onclick="openEditItem('${ck}','${ik}')" style="cursor:pointer">
+      <div class="item-name">${escHtml(item.name)}${item.qty?`<span class="item-qty">${escHtml(item.qty)}</span>`:''}</div>
+      <div class="item-meta">
+        <span>📅 ${item.date||'--'}</span>
+        ${badge}
+        ${item.note?`<span>📝 ${escHtml(item.note)}</span>`:''}
+      </div>
+    </div>
+    <button class="item-edit" onclick="openEditItem('${ck}','${ik}')">✏️</button>
+    <button class="item-del" onclick="delItem('${ck}','${ik}')">✕</button>
+  </div>`;
+}
+
+function setSummary(t,w,e) {
+  document.getElementById('sum-total').textContent=t;
+  document.getElementById('sum-warn').textContent=w;
+  document.getElementById('sum-exp').textContent=e;
+}
+
+function toggleCat(ck) {
+  const key=zone+'_'+ck;
+  opened[key] = opened[key]===false ? true : false;
+  renderZone();
+}
+
+// ─── EMOJI ───────────────────────────────────────────────
+function buildEmojiPicker() {
+  document.getElementById('emojiPicker').innerHTML = EMOJIS.map(e=>
+    `<button class="emoji-btn ${e===selEmoji?'sel':''}" onclick="pickEmoji('${e}')">${e}</button>`
+  ).join('');
+}
+function pickEmoji(e) {
+  selEmoji=e;
+  document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.toggle('sel',b.textContent===e));
+}
+
+// ─── CATEGORY MODAL ──────────────────────────────────────
+function openAddCat() {
+  editCatKey=null; selEmoji='🥦';
+  buildEmojiPicker();
+  document.getElementById('catName').value='';
+  document.getElementById('catModalTitle').textContent='카테고리 추가';
+  document.getElementById('catDelBtn').style.display='none';
+  document.getElementById('catModal').classList.add('show');
+  setTimeout(()=>document.getElementById('catName').focus(),300);
+}
+function openEditCat(ck) {
+  editCatKey=ck;
+  const cat=dbData[zone][ck];
+  selEmoji=cat.emoji||'📦'; buildEmojiPicker();
+  document.getElementById('catName').value=cat.name;
+  document.getElementById('catModalTitle').textContent='카테고리 수정';
+  document.getElementById('catDelBtn').style.display='block';
+  document.getElementById('catModal').classList.add('show');
+}
+function closeCatModal(e) {
+  if(e.target.id==='catModal') document.getElementById('catModal').classList.remove('show');
+}
+async function saveCat() {
+  const name=document.getElementById('catName').value.trim();
+  if(!name){toast('이름을 입력해주세요');return;}
+  if(editCatKey){
+    const existing=dbData[zone][editCatKey];
+    const updated={...existing,name,emoji:selEmoji};
+    if(window._fb?.ready()){await fbSet(`${zone}/${editCatKey}`,updated);}
+    else{dbData[zone][editCatKey]=updated;saveLoc();renderZone();}
+    toast('카테고리 수정 완료 ✅');
+  } else {
+    const data={name,emoji:selEmoji,order:Date.now(),items:{}};
+    if(window._fb?.ready()){await fbPush(zone,data);}
+    else{dbData[zone]['L'+Date.now()]=data;saveLoc();renderZone();}
+    toast('카테고리 추가 완료 ✅');
+  }
+  document.getElementById('catModal').classList.remove('show');
+}
+async function deleteCat() {
+  if(!editCatKey)return;
+  const cat=dbData[zone][editCatKey];
+  const cnt=Object.keys(cat.items||{}).length;
+  if(cnt>0&&!confirm(`"${cat.name}" 카테고리와 식재료 ${cnt}개를 모두 삭제할까요?`))return;
+  if(window._fb?.ready()){await fbDel(`${zone}/${editCatKey}`);}
+  else{delete dbData[zone][editCatKey];saveLoc();renderZone();}
+  document.getElementById('catModal').classList.remove('show');
+  toast('카테고리 삭제 완료');
+}
+
+// ─── ITEM MODAL ──────────────────────────────────────────
+function openAddItem(ck) {
+  addItemCatKey=ck; editItemKey=null;
+  document.getElementById('itemModalTitle').textContent='식재료 추가';
+  document.getElementById('itemSaveBtn').textContent='추가하기';
+  document.getElementById('itemDelBtn').style.display='none';
+  ['itemName','itemQty','itemNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('itemDate').value=toDateStr(new Date());
+  document.getElementById('itemExp').value='';
+  document.getElementById('itemModal').classList.add('show');
+  setTimeout(()=>document.getElementById('itemName').focus(),300);
+}
+
+function openEditItem(ck, ik) {
+  addItemCatKey=ck; editItemKey=ik;
+  const item = dbData[zone][ck].items[ik];
+  document.getElementById('itemModalTitle').textContent='식재료 수정';
+  document.getElementById('itemSaveBtn').textContent='수정 저장';
+  document.getElementById('itemDelBtn').style.display='block';
+  document.getElementById('itemName').value=item.name||'';
+  document.getElementById('itemQty').value=item.qty||'';
+  document.getElementById('itemDate').value=item.date||toDateStr(new Date());
+  document.getElementById('itemExp').value=item.exp||'';
+  document.getElementById('itemNote').value=item.note||'';
+  document.getElementById('itemModal').classList.add('show');
+  setTimeout(()=>document.getElementById('itemName').focus(),300);
+}
+function closeItemModal(e) {
+  if(e.target.id==='itemModal') document.getElementById('itemModal').classList.remove('show');
+}
+async function saveItem() {
+  const name=document.getElementById('itemName').value.trim();
+  if(!name){toast('이름을 입력해주세요');return;}
+  const item={
+    name,
+    qty:document.getElementById('itemQty').value.trim(),
+    date:document.getElementById('itemDate').value||toDateStr(new Date()),
+    exp:document.getElementById('itemExp').value||'',
+    note:document.getElementById('itemNote').value.trim(),
+    ts:Date.now()
+  };
+  if(editItemKey) {
+    // Edit mode
+    const path=`${zone}/${addItemCatKey}/items/${editItemKey}`;
+    if(window._fb?.ready()){await fbSet(path,item);}
+    else{dbData[zone][addItemCatKey].items[editItemKey]=item;saveLoc();renderZone();}
+    document.getElementById('itemModal').classList.remove('show');
+    toast(`${name} 수정 완료 ✅`);
+  } else {
+    await doAddItem(addItemCatKey,item);
+    document.getElementById('itemModal').classList.remove('show');
+    toast(`${name} 추가 완료 ✅`);
+  }
+}
+
+async function delItemFromModal() {
+  if(!editItemKey||!addItemCatKey)return;
+  await delItem(addItemCatKey,editItemKey);
+  document.getElementById('itemModal').classList.remove('show');
+}
+async function quickAdd(ck) {
+  const el=document.getElementById(`qi_${ck}`);
+  const name=el.value.trim(); if(!name)return;
+  await doAddItem(ck,{name,qty:'',date:toDateStr(new Date()),exp:'',note:'',ts:Date.now()});
+  el.value=''; toast(`${name} 추가 완료 ✅`);
+}
+async function doAddItem(ck,item) {
+  if(window._fb?.ready()){await fbPush(`${zone}/${ck}/items`,item);}
+  else{
+    if(!dbData[zone][ck].items)dbData[zone][ck].items={};
+    dbData[zone][ck].items['L'+Date.now()]=item;
+    saveLoc();renderZone();
+  }
+}
+async function delItem(ck,ik) {
+  if(window._fb?.ready()){await fbDel(`${zone}/${ck}/items/${ik}`);}
+  else{delete dbData[zone][ck].items[ik];saveLoc();renderZone();}
+  toast('삭제 완료');
+}
+
+// ─── UTILS ───────────────────────────────────────────────
+function toDateStr(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
+</script>
+</body>
+</html>
