@@ -11,16 +11,28 @@
   import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   // ✅ 여기에 Firebase 설정 붙여넣기
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyC1VelhaJqL8HzmSjRzbenjN8R-kwz-Yfc",
+  authDomain: "health-fba6a.firebaseapp.com",
+  databaseURL: "https://health-fba6a-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "health-fba6a",
+  storageBucket: "health-fba6a.firebasestorage.app",
+  messagingSenderId: "215200638400",
+  appId: "1:215200638400:web:ce9a0d0917667ffd9e9425",
+  measurementId: "G-SHMJ8X0M0Y"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
   let db;
   try {
     const app = initializeApp(firebaseConfig);
