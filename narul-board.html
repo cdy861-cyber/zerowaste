@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>우리 반 글마당</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     Firebase SDK (compat 버전 - 별도 서버/빌드 없이 파일 하나로 동작)
+     ============================================================ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<style>
+  :root{
+    --paper: #FBF7EE;
+    --paper-deep: #F3ECDC;
+    --line: #E2D6BC;
+    --ink: #3A342A;
+    --ink-soft: #6E6656;
+    --stamp: #C0392B;
+    --stamp-soft: #F3D9D4;
+    --pin: #E6B325;
+    --mint: #4C7A6D;
+    --mint-soft: #DCE9E4;
+    --shadow: rgba(60, 50, 30, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, var(--line) 28px),
+      var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    padding: 28px 16px 80px;
+  }
+
+  .wrap{ max-width: 880px; margin: 0 auto; }
+
+  header{ text-align:left; margin-bottom: 20px; }
+  header h1{
+    font-family: 'Gaegu', cursive;
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: var(--ink);
+    display:inline-block;
+    position:relative;
+  }
+  header h1::after{
+    content:"";
+    position:absolute;
+    left: -4px; right: -4px; bottom: 4px;
+    height: 12px;
+    background: var(--pin);
+    opacity: 0.35;
+    z-index:-1;
+    transform: rotate(-1deg);
+  }
+  header p{ margin:4px 0 0; color: var(--ink-soft); font-size: 0.95rem; }
+
+  #setupNotice{
+    display:none;
+    background: #FFF4E5; border: 1px solid #E9C46A; border-radius: 6px;
+    padding: 14px 16px; margin-bottom: 20px; font-size: 0.88rem; line-height:1.6;
+  }
+  #setupNotice code{ background:#fff; padding:1px 5px; border-radius:3px; }
+
+  #connStatus{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size: 0.78rem; color: var(--ink-soft); margin-bottom: 14px;
+  }
+  #connStatus .dot{ width:8px; height:8px; border-radius:50%; background:#bbb; }
+  #connStatus.online .dot{ background: var(--mint); }
+  #connStatus.offline .dot{ background: var(--stamp); }
+
+  .toolbar{ display:flex; justify-content:flex-end; gap:8px; margin-bottom: 14px; }
+  .ghost-btn{
+    background:none; border:1px solid var(--line); color: var(--ink-soft);
+    padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor:pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .ghost-btn:hover{ background: var(--paper-deep); }
+
+  .compose{
+    background: #fff; border: 1px solid var(--line); border-radius: 4px;
+    padding: 20px 22px; box-shadow: 0 6px 16px var(--shadow);
+    margin-bottom: 36px; position: relative;
+  }
+  .compose::before{
+    content:""; position:absolute; top:-9px; left: 28px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--pin); box-shadow: 0 3px 4px rgba(0,0,0,0.25);
+  }
+  .compose h2{ font-family: 'Gaegu', cursive; font-size: 1.4rem; margin: 4px 0 14px; font-weight:700; }
+  .field-row{ display:flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .field-row input[type="text"]{ flex: 1; min-width: 140px; }
+  input[type="text"], textarea{
+    width: 100%; border: 1px solid var(--line); border-radius: 4px;
+    padding: 10px 12px; font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.95rem; background: var(--paper); color: var(--ink);
+  }
+  input[type="text"]:focus, textarea:focus{ outline: none; border-color: var(--mint); background: #fff; }
+  textarea{ resize: vertical; min-height: 90px; line-height:1.6; }
+  .compose-footer{ display:flex; justify-content: flex-end; margin-top: 12px; }
+  .submit-btn{
+    background: var(--ink); color: var(--paper); border: none; border-radius: 4px;
+    padding: 10px 22px; font-size: 0.95rem; font-weight: 500;
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+    transition: transform 0.12s ease;
+  }
+  .submit-btn:hover{ transform: translateY(-1px); }
+  .submit-btn:disabled{ opacity: 0.5; cursor: default; transform:none; }
+
+  #board{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 22px; align-items: start;
+  }
+
+  .note{
+    background: #fff; border: 1px solid var(--line); border-radius: 3px;
+    padding: 18px 18px 14px; box-shadow: 0 5px 14px var(--shadow);
+    position: relative;
+  }
+  .note::before{
+    content:""; position:absolute; top:-8px; left: 50%; transform: translateX(-50%);
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--pin); box-shadow: 0 3px 4px rgba(0,0,0,0.25);
+  }
+  .note-head{ display:flex; justify-content: space-between; align-items:baseline; margin-bottom: 8px; gap: 8px; }
+  .note-author{ font-family: 'Gaegu', cursive; font-weight: 700; font-size: 1.2rem; color: var(--mint); }
+  .note-time{ font-size: 0.72rem; color: var(--ink-soft); white-space:nowrap; }
+  .note-title{ font-weight: 700; font-size: 1.05rem; margin: 0 0 6px; }
+  .note-content{ font-size: 0.92rem; line-height: 1.7; color: var(--ink); white-space: pre-wrap; word-break: break-word; margin-bottom: 14px; }
+
+  .note-actions{ display:flex; align-items:center; gap: 10px; border-top: 1px dashed var(--line); padding-top: 10px; }
+  .stamp-btn{
+    display:flex; align-items:center; gap: 6px;
+    background: var(--stamp-soft); color: var(--stamp);
+    border: 1px solid transparent; border-radius: 20px;
+    padding: 6px 14px; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+    transition: transform 0.15s ease;
+  }
+  .stamp-btn.active{ background: var(--stamp); color: #fff; }
+  .stamp-btn:active{ transform: scale(0.94); }
+
+  .comment-toggle{
+    background:none; border:none; color: var(--mint); font-size: 0.85rem;
+    cursor:pointer; font-weight:500; font-family:'Noto Sans KR', sans-serif;
+    display:flex; align-items:center; gap:4px;
+  }
+
+  .comments{ margin-top: 12px; display:none; }
+  .comments.open{ display:block; }
+  .comment-item{ background: var(--mint-soft); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; font-size: 0.85rem; }
+  .comment-item b{ color: var(--mint); font-family:'Gaegu',cursive; font-size:0.95rem; }
+  .comment-form{ display:flex; gap:6px; margin-top: 8px; flex-wrap:wrap; }
+  .comment-form input[type="text"]{ font-size: 0.85rem; padding: 7px 9px; }
+  .comment-form input.c-name{ flex: 0 0 90px; }
+  .comment-form input.c-text{ flex: 1 1 140px; }
+  .comment-form button{
+    border:none; background: var(--mint); color:#fff; border-radius:4px;
+    padding: 7px 12px; font-size: 0.8rem; cursor:pointer;
+  }
+
+  .empty-state{ text-align:center; color: var(--ink-soft); padding: 50px 20px; font-size: 0.95rem; grid-column: 1 / -1; }
+
+  .toast{
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); padding: 10px 18px;
+    border-radius: 6px; font-size: 0.85rem; opacity:0; pointer-events:none;
+    transition: opacity 0.25s ease, transform 0.25s ease; z-index: 50;
+  }
+  .toast.show{ opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+  @media (max-width: 480px){
+    header h1{ font-size: 2rem; }
+    #board{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>우리 반 글마당</h1>
+    <p>오늘 쓴 글을 남기고, 친구 글에 공감과 댓글을 달아보세요 ✏️</p>
+  </header>
+
+  <div id="setupNotice">
+    ⚠️ 아직 Firebase 설정이 안 되어 있어요. 이 파일의 <code>&lt;script&gt;</code> 안에 있는
+    <code>firebaseConfig</code> 값을 본인의 Firebase 프로젝트 값으로 바꿔주세요.
+    (채팅에서 설정 방법을 안내해드렸어요.)
+  </div>
+
+  <div id="connStatus"><span class="dot"></span><span id="connText">연결 확인 중…</span></div>
+
+  <div class="toolbar">
+    <button class="ghost-btn" id="resetBtn" type="button">게시판 비우기</button>
+  </div>
+
+  <div class="compose">
+    <h2>새 글 남기기</h2>
+    <div class="field-row">
+      <input type="text" id="inputName" placeholder="이름 (예: 3번 김민준)" maxlength="20" />
+      <input type="text" id="inputTitle" placeholder="글 제목" maxlength="40" />
+    </div>
+    <textarea id="inputContent" placeholder="오늘 배운 것, 느낀 점, 하고 싶은 이야기를 자유롭게 적어보세요." maxlength="1000"></textarea>
+    <div class="compose-footer">
+      <button class="submit-btn" id="submitBtn" type="button">게시판에 올리기</button>
+    </div>
+  </div>
+
+  <div id="board">
+    <div class="empty-state" id="emptyState">아직 올라온 글이 없어요. 첫 글의 주인공이 되어보세요!</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ============================================================
+  // 1) 여기를 본인의 Firebase 프로젝트 설정 값으로 바꿔주세요.
+  //    Firebase 콘솔 > 프로젝트 설정 > "내 앱"에서 복사할 수 있어요.
+  // ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyD_KFVAZ3v1BvCuCWMbtE9zF_7_JUB0boo",
+  authDomain: "narul-board.firebaseapp.com",
+  databaseURL: "https://narul-board-default-rtdb.firebaseio.com",
+  projectId: "narul-board",
+};
+</script>
+
+<script>
+(function(){
+  const boardEl = document.getElementById('board');
+  const emptyState = document.getElementById('emptyState');
+  const toastEl = document.getElementById('toast');
+  const setupNotice = document.getElementById('setupNotice');
+  const connStatus = document.getElementById('connStatus');
+  const connText = document.getElementById('connText');
+
+  const inputName = document.getElementById('inputName');
+  const inputTitle = document.getElementById('inputTitle');
+  const inputContent = document.getElementById('inputContent');
+  const submitBtn = document.getElementById('submitBtn');
+
+  let likedThisSession = new Set(); // 이 브라우저(태블릿)에서 이미 공감 누른 글
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    setTimeout(()=> toastEl.classList.remove('show'), 1800);
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function formatTime(ts){
+    const d = new Date(ts);
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    return `${d.getMonth()+1}/${d.getDate()} ${hh}:${mm}`;
+  }
+
+  function rotationFor(id){
+    let hash = 0;
+    for(let i=0;i<id.length;i++){ hash = (hash*31 + id.charCodeAt(i)) % 1000; }
+    return (((hash % 200) / 100) - 1).toFixed(2);
+  }
+
+  // 설정이 안 되어 있으면 안내만 보여주고 중단
+  if(!firebaseConfig.apiKey || firebaseConfig.apiKey === 'YOUR_API_KEY'){
+    setupNotice.style.display = 'block';
+    submitBtn.disabled = true;
+    connText.textContent = 'Firebase 설정 필요';
+    return;
+  }
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const postsRef = db.ref('posts');
+
+  // 연결 상태 표시
+  db.ref('.info/connected').on('value', (snap) => {
+    if(snap.val() === true){
+      connStatus.classList.add('online'); connStatus.classList.remove('offline');
+      connText.textContent = '실시간 연결됨';
+    }else{
+      connStatus.classList.add('offline'); connStatus.classList.remove('online');
+      connText.textContent = '연결 대기 중…';
+    }
+  });
+
+  function renderPosts(postsObj){
+    const ids = Object.keys(postsObj || {}).sort((a,b) => (postsObj[b].ts||0) - (postsObj[a].ts||0));
+
+    if(ids.length === 0){
+      boardEl.innerHTML = '';
+      boardEl.appendChild(emptyState);
+      return;
+    }
+
+    boardEl.innerHTML = '';
+    ids.forEach(id => {
+      const post = postsObj[id];
+      const note = document.createElement('div');
+      note.className = 'note';
+      note.style.transform = `rotate(${rotationFor(id)}deg)`;
+
+      const liked = likedThisSession.has(id);
+      const comments = post.comments ? Object.values(post.comments).sort((a,b)=>(a.ts||0)-(b.ts||0)) : [];
+
+      note.innerHTML = `
+        <div class="note-head">
+          <span class="note-author">${escapeHtml(post.author||'')}</span>
+          <span class="note-time">${formatTime(post.ts)}</span>
+        </div>
+        <div class="note-title">${escapeHtml(post.title||'')}</div>
+        <div class="note-content">${escapeHtml(post.content||'')}</div>
+        <div class="note-actions">
+          <button class="stamp-btn ${liked ? 'active' : ''}" data-id="${id}" data-action="like">
+            👍 공감 <span class="like-count">${post.empathy || 0}</span>
+          </button>
+          <button class="comment-toggle" data-id="${id}" data-action="toggle-comments">
+            💬 댓글 ${comments.length}
+          </button>
+        </div>
+        <div class="comments" data-comments-for="${id}">
+          <div class="comment-list">
+            ${comments.map(c => `<div class="comment-item"><b>${escapeHtml(c.author)}</b> ${escapeHtml(c.text)}</div>`).join('')}
+          </div>
+          <div class="comment-form">
+            <input type="text" class="c-name" placeholder="이름" maxlength="20" data-cname-for="${id}" />
+            <input type="text" class="c-text" placeholder="댓글을 남겨보세요" maxlength="200" data-ctext-for="${id}" />
+            <button data-action="add-comment" data-id="${id}">등록</button>
+          </div>
+        </div>
+      `;
+      boardEl.appendChild(note);
+    });
+  }
+
+  // 실시간 구독: 어떤 태블릿에서 글을 올려도 모든 화면에 바로 반영됨
+  postsRef.on('value', (snapshot) => {
+    renderPosts(snapshot.val());
+  });
+
+  function submitPost(){
+    const author = inputName.value.trim();
+    const title = inputTitle.value.trim();
+    const content = inputContent.value.trim();
+
+    if(!author || !title || !content){
+      showToast('이름, 제목, 내용을 모두 입력해주세요.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    postsRef.push({
+      author, title, content,
+      ts: firebase.database.ServerValue.TIMESTAMP,
+      empathy: 0
+    }).then(() => {
+      inputTitle.value = '';
+      inputContent.value = '';
+      showToast('글이 게시판에 올라갔어요!');
+    }).catch((e) => {
+      console.error(e);
+      showToast('저장에 실패했어요. 인터넷 연결을 확인해주세요.');
+    }).finally(() => {
+      submitBtn.disabled = false;
+    });
+  }
+
+  function toggleLike(id){
+    if(likedThisSession.has(id)) return; // 이 태블릿에서는 한 번만
+    likedThisSession.add(id);
+    // transaction으로 여러 태블릿이 동시에 눌러도 정확히 더해짐
+    db.ref('posts/' + id + '/empathy').transaction(cur => (cur || 0) + 1);
+  }
+
+  function addComment(id){
+    const nameEl = document.querySelector(`[data-cname-for="${id}"]`);
+    const textEl = document.querySelector(`[data-ctext-for="${id}"]`);
+    const author = nameEl.value.trim();
+    const text = textEl.value.trim();
+    if(!author || !text){
+      showToast('이름과 댓글 내용을 입력해주세요.');
+      return;
+    }
+    db.ref('posts/' + id + '/comments').push({
+      author, text, ts: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+      nameEl.value = ''; textEl.value = '';
+      const panel = document.querySelector(`[data-comments-for="${id}"]`);
+      if(panel) panel.classList.add('open');
+    });
+  }
+
+  boardEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    if(action === 'like') toggleLike(id);
+    if(action === 'toggle-comments'){
+      const panel = document.querySelector(`[data-comments-for="${id}"]`);
+      if(panel) panel.classList.toggle('open');
+    }
+    if(action === 'add-comment') addComment(id);
+  });
+
+  submitBtn.addEventListener('click', submitPost);
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if(!confirm('게시판의 모든 글을 지울까요? 이 작업은 되돌릴 수 없어요.')) return;
+    postsRef.remove().then(() => showToast('게시판을 비웠어요.'));
+  });
+})();
+</script>
+</body>
+</html>
