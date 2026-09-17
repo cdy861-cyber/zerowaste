@@ -7,9 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 
-<!-- ============================================================
-     Firebase SDK (compat 버전 - 별도 서버/빌드 없이 파일 하나로 동작)
-     ============================================================ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
@@ -46,47 +43,45 @@
   header{ text-align:left; margin-bottom: 20px; }
   header h1{
     font-family: 'Gaegu', cursive;
-    font-size: 2.6rem;
-    font-weight: 700;
-    margin: 0 0 4px;
-    color: var(--ink);
-    display:inline-block;
-    position:relative;
+    font-size: 2.6rem; font-weight: 700;
+    margin: 0 0 4px; color: var(--ink);
+    display:inline-block; position:relative;
   }
   header h1::after{
-    content:"";
-    position:absolute;
+    content:""; position:absolute;
     left: -4px; right: -4px; bottom: 4px;
-    height: 12px;
-    background: var(--pin);
-    opacity: 0.35;
-    z-index:-1;
-    transform: rotate(-1deg);
+    height: 12px; background: var(--pin);
+    opacity: 0.35; z-index:-1; transform: rotate(-1deg);
   }
   header p{ margin:4px 0 0; color: var(--ink-soft); font-size: 0.95rem; }
 
   #setupNotice{
-    display:none;
-    background: #FFF4E5; border: 1px solid #E9C46A; border-radius: 6px;
-    padding: 14px 16px; margin-bottom: 20px; font-size: 0.88rem; line-height:1.6;
+    display:none; background: #FFF4E5; border: 1px solid #E9C46A;
+    border-radius: 6px; padding: 14px 16px; margin-bottom: 20px;
+    font-size: 0.88rem; line-height:1.6;
   }
   #setupNotice code{ background:#fff; padding:1px 5px; border-radius:3px; }
 
+  .status-row{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:10px; flex-wrap:wrap; margin-bottom: 14px;
+  }
   #connStatus{
     display:inline-flex; align-items:center; gap:6px;
-    font-size: 0.78rem; color: var(--ink-soft); margin-bottom: 14px;
+    font-size: 0.78rem; color: var(--ink-soft);
   }
   #connStatus .dot{ width:8px; height:8px; border-radius:50%; background:#bbb; }
   #connStatus.online .dot{ background: var(--mint); }
   #connStatus.offline .dot{ background: var(--stamp); }
 
-  .toolbar{ display:flex; justify-content:flex-end; gap:8px; margin-bottom: 14px; }
+  .toolbar{ display:flex; gap:8px; }
   .ghost-btn{
     background:none; border:1px solid var(--line); color: var(--ink-soft);
     padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor:pointer;
     font-family: 'Noto Sans KR', sans-serif;
   }
   .ghost-btn:hover{ background: var(--paper-deep); }
+  .ghost-btn.teacher-on{ border-color: var(--mint); color: var(--mint); font-weight:700; }
 
   .compose{
     background: #fff; border: 1px solid var(--line); border-radius: 4px;
@@ -101,12 +96,12 @@
   .compose h2{ font-family: 'Gaegu', cursive; font-size: 1.4rem; margin: 4px 0 14px; font-weight:700; }
   .field-row{ display:flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
   .field-row input[type="text"]{ flex: 1; min-width: 140px; }
-  input[type="text"], textarea{
+  input[type="text"], input[type="password"], textarea{
     width: 100%; border: 1px solid var(--line); border-radius: 4px;
     padding: 10px 12px; font-family: 'Noto Sans KR', sans-serif;
     font-size: 0.95rem; background: var(--paper); color: var(--ink);
   }
-  input[type="text"]:focus, textarea:focus{ outline: none; border-color: var(--mint); background: #fff; }
+  input:focus, textarea:focus{ outline: none; border-color: var(--mint); background: #fff; }
   textarea{ resize: vertical; min-height: 90px; line-height:1.6; }
   .compose-footer{ display:flex; justify-content: flex-end; margin-top: 12px; }
   .submit-btn{
@@ -119,8 +114,7 @@
   .submit-btn:disabled{ opacity: 0.5; cursor: default; transform:none; }
 
   #board{
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 22px; align-items: start;
   }
 
@@ -136,7 +130,13 @@
   }
   .note-head{ display:flex; justify-content: space-between; align-items:baseline; margin-bottom: 8px; gap: 8px; }
   .note-author{ font-family: 'Gaegu', cursive; font-weight: 700; font-size: 1.2rem; color: var(--mint); }
+  .note-meta{ display:flex; align-items:center; gap:6px; }
   .note-time{ font-size: 0.72rem; color: var(--ink-soft); white-space:nowrap; }
+  .del-btn{
+    background:none; border:none; cursor:pointer; padding:2px 4px;
+    font-size: 0.85rem; color: #C9C0AC; line-height:1;
+  }
+  .del-btn:hover{ color: var(--stamp); }
   .note-title{ font-weight: 700; font-size: 1.05rem; margin: 0 0 6px; }
   .note-content{ font-size: 0.92rem; line-height: 1.7; color: var(--ink); white-space: pre-wrap; word-break: break-word; margin-bottom: 14px; }
 
@@ -160,8 +160,13 @@
 
   .comments{ margin-top: 12px; display:none; }
   .comments.open{ display:block; }
-  .comment-item{ background: var(--mint-soft); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; font-size: 0.85rem; }
+  .comment-item{
+    background: var(--mint-soft); border-radius: 6px;
+    padding: 8px 10px; margin-bottom: 6px; font-size: 0.85rem;
+    display:flex; justify-content:space-between; align-items:flex-start; gap:6px;
+  }
   .comment-item b{ color: var(--mint); font-family:'Gaegu',cursive; font-size:0.95rem; }
+  .comment-item .c-body{ flex:1; word-break:break-word; }
   .comment-form{ display:flex; gap:6px; margin-top: 8px; flex-wrap:wrap; }
   .comment-form input[type="text"]{ font-size: 0.85rem; padding: 7px 9px; }
   .comment-form input.c-name{ flex: 0 0 90px; }
@@ -195,15 +200,14 @@
   </header>
 
   <div id="setupNotice">
-    ⚠️ 아직 Firebase 설정이 안 되어 있어요. 이 파일의 <code>&lt;script&gt;</code> 안에 있는
-    <code>firebaseConfig</code> 값을 본인의 Firebase 프로젝트 값으로 바꿔주세요.
-    (채팅에서 설정 방법을 안내해드렸어요.)
+    ⚠️ 아직 Firebase 설정이 안 되어 있어요. 이 파일의 <code>firebaseConfig</code> 값을 채워주세요.
   </div>
 
-  <div id="connStatus"><span class="dot"></span><span id="connText">연결 확인 중…</span></div>
-
-  <div class="toolbar">
-    <button class="ghost-btn" id="resetBtn" type="button">게시판 비우기</button>
+  <div class="status-row">
+    <div id="connStatus"><span class="dot"></span><span id="connText">연결 확인 중…</span></div>
+    <div class="toolbar">
+      <button class="ghost-btn" id="teacherBtn" type="button">교사 모드</button>
+    </div>
   </div>
 
   <div class="compose">
@@ -227,15 +231,19 @@
 
 <script>
   // ============================================================
-  // 1) 여기를 본인의 Firebase 프로젝트 설정 값으로 바꿔주세요.
-  //    Firebase 콘솔 > 프로젝트 설정 > "내 앱"에서 복사할 수 있어요.
+  //  Firebase 설정 (narul-board)
   // ============================================================
-const firebaseConfig = {
-  apiKey: "AIzaSyD_KFVAZ3v1BvCuCWMbtE9zF_7_JUB0boo",
-  authDomain: "narul-board.firebaseapp.com",
-  databaseURL: "https://narul-board-default-rtdb.firebaseio.com",
-  projectId: "narul-board",
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyD_KFVAZ3v1BvCuCWMbtE9zF_7_JUB0boo",
+    authDomain: "narul-board.firebaseapp.com",
+    databaseURL: "https://narul-board-default-rtdb.firebaseio.com",
+    projectId: "narul-board",
+  };
+
+  // ============================================================
+  //  ★ 교사 비밀번호 — 여기 숫자를 원하는 값으로 바꾸세요
+  // ============================================================
+  const TEACHER_PASSWORD = "1234";
 </script>
 
 <script>
@@ -246,18 +254,22 @@ const firebaseConfig = {
   const setupNotice = document.getElementById('setupNotice');
   const connStatus = document.getElementById('connStatus');
   const connText = document.getElementById('connText');
+  const teacherBtn = document.getElementById('teacherBtn');
 
   const inputName = document.getElementById('inputName');
   const inputTitle = document.getElementById('inputTitle');
   const inputContent = document.getElementById('inputContent');
   const submitBtn = document.getElementById('submitBtn');
 
-  let likedThisSession = new Set(); // 이 브라우저(태블릿)에서 이미 공감 누른 글
+  let likedThisSession = new Set();
+  let myPostIds = new Set();      // 이 태블릿에서 쓴 글
+  let myCommentIds = new Set();   // 이 태블릿에서 쓴 댓글 (postId::commentId)
+  let teacherMode = false;
 
   function showToast(msg){
     toastEl.textContent = msg;
     toastEl.classList.add('show');
-    setTimeout(()=> toastEl.classList.remove('show'), 1800);
+    setTimeout(()=> toastEl.classList.remove('show'), 1900);
   }
 
   function escapeHtml(str){
@@ -279,7 +291,6 @@ const firebaseConfig = {
     return (((hash % 200) / 100) - 1).toFixed(2);
   }
 
-  // 설정이 안 되어 있으면 안내만 보여주고 중단
   if(!firebaseConfig.apiKey || firebaseConfig.apiKey === 'YOUR_API_KEY'){
     setupNotice.style.display = 'block';
     submitBtn.disabled = true;
@@ -291,7 +302,6 @@ const firebaseConfig = {
   const db = firebase.database();
   const postsRef = db.ref('posts');
 
-  // 연결 상태 표시
   db.ref('.info/connected').on('value', (snap) => {
     if(snap.val() === true){
       connStatus.classList.add('online'); connStatus.classList.remove('offline');
@@ -302,8 +312,11 @@ const firebaseConfig = {
     }
   });
 
+  let latestPosts = {};
+
   function renderPosts(postsObj){
-    const ids = Object.keys(postsObj || {}).sort((a,b) => (postsObj[b].ts||0) - (postsObj[a].ts||0));
+    latestPosts = postsObj || {};
+    const ids = Object.keys(latestPosts).sort((a,b) => (latestPosts[b].ts||0) - (latestPosts[a].ts||0));
 
     if(ids.length === 0){
       boardEl.innerHTML = '';
@@ -311,20 +324,33 @@ const firebaseConfig = {
       return;
     }
 
+    // 열려 있던 댓글창 기억
+    const openPanels = new Set(
+      Array.from(document.querySelectorAll('.comments.open')).map(el => el.dataset.commentsFor)
+    );
+
     boardEl.innerHTML = '';
     ids.forEach(id => {
-      const post = postsObj[id];
+      const post = latestPosts[id];
       const note = document.createElement('div');
       note.className = 'note';
       note.style.transform = `rotate(${rotationFor(id)}deg)`;
 
       const liked = likedThisSession.has(id);
-      const comments = post.comments ? Object.values(post.comments).sort((a,b)=>(a.ts||0)-(b.ts||0)) : [];
+      const canDelete = myPostIds.has(id) || teacherMode;
+      const comments = post.comments
+        ? Object.entries(post.comments)
+            .map(([cid, c]) => ({ ...c, cid }))
+            .sort((a,b)=>(a.ts||0)-(b.ts||0))
+        : [];
 
       note.innerHTML = `
         <div class="note-head">
           <span class="note-author">${escapeHtml(post.author||'')}</span>
-          <span class="note-time">${formatTime(post.ts)}</span>
+          <span class="note-meta">
+            <span class="note-time">${formatTime(post.ts)}</span>
+            ${canDelete ? `<button class="del-btn" data-action="del-post" data-id="${id}" title="내 글 삭제">✕</button>` : ''}
+          </span>
         </div>
         <div class="note-title">${escapeHtml(post.title||'')}</div>
         <div class="note-content">${escapeHtml(post.content||'')}</div>
@@ -336,9 +362,15 @@ const firebaseConfig = {
             💬 댓글 ${comments.length}
           </button>
         </div>
-        <div class="comments" data-comments-for="${id}">
+        <div class="comments ${openPanels.has(id) ? 'open' : ''}" data-comments-for="${id}">
           <div class="comment-list">
-            ${comments.map(c => `<div class="comment-item"><b>${escapeHtml(c.author)}</b> ${escapeHtml(c.text)}</div>`).join('')}
+            ${comments.map(c => {
+              const canDelC = myCommentIds.has(id + '::' + c.cid) || teacherMode;
+              return `<div class="comment-item">
+                <span class="c-body"><b>${escapeHtml(c.author)}</b> ${escapeHtml(c.text)}</span>
+                ${canDelC ? `<button class="del-btn" data-action="del-comment" data-id="${id}" data-cid="${c.cid}" title="내 댓글 삭제">✕</button>` : ''}
+              </div>`;
+            }).join('')}
           </div>
           <div class="comment-form">
             <input type="text" class="c-name" placeholder="이름" maxlength="20" data-cname-for="${id}" />
@@ -351,10 +383,7 @@ const firebaseConfig = {
     });
   }
 
-  // 실시간 구독: 어떤 태블릿에서 글을 올려도 모든 화면에 바로 반영됨
-  postsRef.on('value', (snapshot) => {
-    renderPosts(snapshot.val());
-  });
+  postsRef.on('value', (snapshot) => renderPosts(snapshot.val()));
 
   function submitPost(){
     const author = inputName.value.trim();
@@ -367,14 +396,17 @@ const firebaseConfig = {
     }
 
     submitBtn.disabled = true;
-    postsRef.push({
+    const ref = postsRef.push();
+    ref.set({
       author, title, content,
       ts: firebase.database.ServerValue.TIMESTAMP,
       empathy: 0
     }).then(() => {
+      myPostIds.add(ref.key);          // 내 글로 기록 → 나만 삭제 버튼 보임
       inputTitle.value = '';
       inputContent.value = '';
       showToast('글이 게시판에 올라갔어요!');
+      renderPosts(latestPosts);
     }).catch((e) => {
       console.error(e);
       showToast('저장에 실패했어요. 인터넷 연결을 확인해주세요.');
@@ -384,9 +416,8 @@ const firebaseConfig = {
   }
 
   function toggleLike(id){
-    if(likedThisSession.has(id)) return; // 이 태블릿에서는 한 번만
+    if(likedThisSession.has(id)) return;
     likedThisSession.add(id);
-    // transaction으로 여러 태블릿이 동시에 눌러도 정확히 더해짐
     db.ref('posts/' + id + '/empathy').transaction(cur => (cur || 0) + 1);
   }
 
@@ -399,12 +430,34 @@ const firebaseConfig = {
       showToast('이름과 댓글 내용을 입력해주세요.');
       return;
     }
-    db.ref('posts/' + id + '/comments').push({
+    const cRef = db.ref('posts/' + id + '/comments').push();
+    cRef.set({
       author, text, ts: firebase.database.ServerValue.TIMESTAMP
     }).then(() => {
+      myCommentIds.add(id + '::' + cRef.key);
       nameEl.value = ''; textEl.value = '';
-      const panel = document.querySelector(`[data-comments-for="${id}"]`);
-      if(panel) panel.classList.add('open');
+    });
+  }
+
+  function deletePost(id){
+    if(!(myPostIds.has(id) || teacherMode)){
+      showToast('내가 쓴 글만 지울 수 있어요.');
+      return;
+    }
+    if(!confirm('이 글을 지울까요?')) return;
+    db.ref('posts/' + id).remove().then(() => {
+      myPostIds.delete(id);
+      showToast('글을 지웠어요.');
+    });
+  }
+
+  function deleteComment(id, cid){
+    if(!(myCommentIds.has(id + '::' + cid) || teacherMode)){
+      showToast('내가 쓴 댓글만 지울 수 있어요.');
+      return;
+    }
+    db.ref('posts/' + id + '/comments/' + cid).remove().then(() => {
+      myCommentIds.delete(id + '::' + cid);
     });
   }
 
@@ -419,12 +472,40 @@ const firebaseConfig = {
       if(panel) panel.classList.toggle('open');
     }
     if(action === 'add-comment') addComment(id);
+    if(action === 'del-post') deletePost(id);
+    if(action === 'del-comment') deleteComment(id, btn.dataset.cid);
   });
 
   submitBtn.addEventListener('click', submitPost);
 
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    if(!confirm('게시판의 모든 글을 지울까요? 이 작업은 되돌릴 수 없어요.')) return;
+  // ---- 교사 모드 ----
+  teacherBtn.addEventListener('click', () => {
+    if(teacherMode){
+      teacherMode = false;
+      teacherBtn.textContent = '교사 모드';
+      teacherBtn.classList.remove('teacher-on');
+      showToast('교사 모드를 껐어요.');
+      renderPosts(latestPosts);
+      return;
+    }
+    const pw = prompt('교사 비밀번호를 입력하세요.');
+    if(pw === null) return;
+    if(pw !== TEACHER_PASSWORD){
+      showToast('비밀번호가 맞지 않아요.');
+      return;
+    }
+    teacherMode = true;
+    teacherBtn.textContent = '교사 모드 ON · 전체 비우기';
+    teacherBtn.classList.add('teacher-on');
+    showToast('교사 모드가 켜졌어요. 버튼을 길게 눌러 전체 비우기.');
+    renderPosts(latestPosts);
+  });
+
+  // 교사 모드일 때만 전체 비우기 (더블클릭 + 확인 2단계)
+  teacherBtn.addEventListener('dblclick', () => {
+    if(!teacherMode) return;
+    if(!confirm('게시판의 모든 글을 지울까요? 되돌릴 수 없습니다.')) return;
+    if(!confirm('정말 전부 삭제합니다. 계속할까요?')) return;
     postsRef.remove().then(() => showToast('게시판을 비웠어요.'));
   });
 })();
